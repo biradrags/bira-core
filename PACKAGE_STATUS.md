@@ -2,7 +2,7 @@
 
 | Модуль | Статус | Примечание |
 |---|---|---|
-| log | beta | R2: словарь собран из workspace-map + канон env-имён; перед stable — свerка с fly secrets list по каждому приложению (за владельцем) |
+| log | beta | R2: словарь собран из workspace-map + канон env-имён; перед stable — сверка с fly secrets list по каждому приложению (за владельцем) |
 | web | beta | |
 | db | beta | extra [db] |
 | tg | beta | |
