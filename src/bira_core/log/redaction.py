@@ -19,6 +19,7 @@ SENSITIVE_KEY_NAMES = frozenset(
         "secret_key",
         "private_key",
         "access_key",
+        "session",
         "session_string",
     }
 )
@@ -30,6 +31,10 @@ SENSITIVE_KEY_SUFFIXES = (
     "_apikey",
     "_dsn",
     "_credentials",
+    "_access_key",
+    "_hash",
+    "_creds",
+    "_terminal_key",
 )
 SENSITIVE_KEY_PATTERNS = ("token", "secret", "password", "api_key", "dsn", "auth")
 PREFIX_LEN = 4
@@ -43,6 +48,7 @@ DSN_RE = re.compile(
     r"(?:postgresql|postgres|mysql|rediss|redis|mongodb)(?:\+[a-z0-9]+)?://[^\s,)\]]*",
     re.IGNORECASE,
 )
+URL_AUTH_RE = re.compile(r"https?://[^\s:@/]+:[^\s/@]+@[^\s,)\]]+", re.IGNORECASE)
 
 
 def _mask_value(value: str) -> str:
@@ -62,6 +68,7 @@ def redact_string(s: str) -> str:
         ),
         s,
     )
+    s = URL_AUTH_RE.sub(lambda m: _mask_value(m.group(0)), s)
     return DSN_RE.sub(lambda m: _mask_value(m.group(0)), s)
 
 
@@ -113,8 +120,51 @@ def _build_kv_patterns(
 _KV_PATTERNS = _build_kv_patterns(SENSITIVE_KEY_PATTERNS)
 
 
+def _mask_sensitive_kv_in_text(text: str) -> str:
+    def repl_bare(match: re.Match[str]) -> str:
+        key = match.group(1).split("=")[0].strip()
+        if not _is_sensitive_key(key):
+            return match.group(0)
+        return match.group(1) + _mask_value(match.group(2))
+
+    def repl_quoted(match: re.Match[str]) -> str:
+        key = match.group(1).split("=")[0].strip()
+        if not _is_sensitive_key(key):
+            return match.group(0)
+        return (
+            match.group(1)
+            + match.group(2)
+            + _mask_value(match.group(3))
+            + match.group(2)
+        )
+
+    text = re.sub(
+        r"(\b[A-Za-z_][A-Za-z0-9_]*\s*=\s*)([^\s,)\]}\']+)",
+        repl_bare,
+        text,
+    )
+    text = re.sub(
+        r"(\b[A-Za-z_][A-Za-z0-9_]*\s*=\s*)(['\"])(.*?)\2",
+        repl_quoted,
+        text,
+    )
+
+    def repl_json(match: re.Match[str]) -> str:
+        key = match.group(1).split("=")[0].strip()
+        if not _is_sensitive_key(key):
+            return match.group(0)
+        return match.group(1) + _mask_value(match.group(2))
+
+    return re.sub(
+        r"(\b[A-Za-z_][A-Za-z0-9_]*\s*=\s*)(\{.*\})",
+        repl_json,
+        text,
+    )
+
+
 def redact_log_message(text: str, *, extra_patterns: Sequence[str] = ()) -> str:
     text = redact_string(text)
+    text = _mask_sensitive_kv_in_text(text)
     patterns = _KV_PATTERNS
     if extra_patterns:
         patterns = patterns + _build_kv_patterns(extra_patterns)
