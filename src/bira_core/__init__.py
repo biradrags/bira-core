@@ -1,3 +1,5 @@
 """bira-core: fleet plumbing for aiogram bots."""
 
-__all__: list[str] = []
+from bira_core.log import RedactionFilter, setup_logging
+
+__all__: list[str] = ["RedactionFilter", "setup_logging"]
