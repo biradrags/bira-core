@@ -21,3 +21,15 @@ class IsSuperAdmin(BaseFilter):
         result = is_superadmin(message.from_user.id, self._superusers)
         logger.debug("IsSuperAdmin", extra={"result": result})
         return result
+
+
+class IsServiceChat(BaseFilter):
+    def __init__(self, service_chat_id: int) -> None:
+        self._service_chat_id = service_chat_id
+
+    async def __call__(self, message: Message) -> bool:
+        result = int(message.chat.id) == int(self._service_chat_id)
+        logger.debug(
+            "IsServiceChat", extra={"chat_id": message.chat.id, "result": result}
+        )
+        return result
