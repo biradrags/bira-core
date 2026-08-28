@@ -1,39 +1,51 @@
 # bira-core
 
-Fleet plumbing for aiogram bots: logging redaction, webhook bootstrap, cron gates, DAO base, notifier.
+Fleet plumbing for aiogram bots: logging, web bootstrap, cron gates, DAO, notifier, protect, dialogs, MAX.
 
 ## Install
 
 ```bash
-uv add "bira-core[db,di,redis] @ git+https://github.com/biradrags/bira-core@v0.1.0"
+uv add "bira-core[db,di,redis,dialogs,protect] @ git+https://github.com/biradrags/bira-core@v0.2.0"
 ```
 
-## Quickstart
+### Extras
 
-```python
-from aiogram import Bot
-from bira_core import safe_send, run_webhook
-from aiogram import Dispatcher
+| Extra | Зависимости | Модули |
+|-------|-------------|--------|
+| `db` | SQLAlchemy, asyncpg, pydantic | `bira_core.db`, `TimestampMixin`, `DbTenantSettings` |
+| `alembic` | alembic | `resolve_ddl_url`, `run_migrations` |
+| `redis` | redis-py | `bira_core.redis` |
+| `di` | dishka | `bira_core.di` |
+| `dialogs` | aiogram-dialog | `bira_core.dialogs` |
+| `protect` | redis (опционально для L2+) | `bira_core.protect` |
+| `payments` | tenacity | `bira_core.payments` |
+| `max` | maxo | `bira_core.maxbot` |
 
-async def main() -> None:
-    dp = Dispatcher()
-    bot = Bot(token="...")
-    await safe_send(bot, chat_id=1, text="hello")
-    await run_webhook(
-        dp,
-        bot,
-        port=8080,
-        webhook_url="https://example.com/webhook/secret",
-        webhook_secret="secret",
-    )
+`maxo` не на PyPI — в `pyproject.toml` потребителя укажите git-source:
+
+```toml
+[tool.uv.sources]
+maxo = { git = "https://github.com/biradrags/maxo", rev = "..." }
 ```
 
-Module maturity and migration gates: [PACKAGE_STATUS.md](PACKAGE_STATUS.md).
+## Module map (v0.2)
+
+- `log` — logfmt `setup_logging`, redaction
+- `db` — `build_url`, `BaseDAO`, alembic helpers, query builders
+- `web` — webhook app, `attach_cron_site`, `CRON_PORT=8081`
+- `notify` — `safe_send`, `deliver`, `send_bulk`, `split_message`
+- `protect` — L1 in-memory `FloodGuard` (per-machine budget), L2 Redis `RateLimiter`, L3 `UsageGate`, L4 heuristics
+- `tg` — debug commands, keyboards, `media_transfer`, filters
+- `dialogs` / `maxbot` — aiogram-dialog и maxo слои
+- `forum` — узкий `ForumTopics` + `ThreadStore`
+- `testing` — mock DI, db fixtures (`rollback_session`, `savepoint_session`)
 
 ## Development
 
 ```bash
 make install
-docker compose up -d   # Postgres on localhost:5499 for DAO tests
+make docker-up   # Postgres :5499, Redis :6399
 make check
 ```
+
+Module maturity: [PACKAGE_STATUS.md](PACKAGE_STATUS.md).

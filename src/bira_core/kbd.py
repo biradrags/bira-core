@@ -5,6 +5,12 @@ from typing import Any
 
 DEFAULT_ROW_CHARS = 30
 
+__all__ = [
+    "DEFAULT_ROW_CHARS",
+    "wrap_button_rows",
+    "wrap_by_label_width",
+]
+
 
 def wrap_by_label_width(
     labels: Sequence[str], *, row_chars: int = DEFAULT_ROW_CHARS

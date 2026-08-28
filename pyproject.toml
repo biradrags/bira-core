@@ -1,6 +1,6 @@
 [project]
 name = "bira-core"
-version = "0.1.0"
+version = "0.2.0"
 description = "Fleet plumbing for aiogram bots: logging redaction, webhook bootstrap, cron gates, DAO base, notifier."
 readme = "README.md"
 license = "MIT"
@@ -51,6 +51,7 @@ packages = ["src/bira_core"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = ["xdist_group(name): xdist loadgroup для shared Postgres"]
 
 [tool.mypy]
 python_version = "3.12"

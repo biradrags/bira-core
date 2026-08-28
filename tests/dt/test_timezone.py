@@ -14,7 +14,7 @@ def test_bad_timezone_falls_back_to_utc() -> None:
 
 
 def test_naive_becomes_aware() -> None:
-    naive = datetime(2024, 1, 1, 12, 0, 0)
+    naive = datetime(2024, 1, 1, 12, 0, 0)  # noqa: DTZ001
     aware = make_timezone_aware(naive, "Europe/Moscow")
     assert is_timezone_aware(aware)
 
@@ -26,6 +26,6 @@ def test_aware_stays_unchanged() -> None:
 
 
 def test_convert_to_timezone() -> None:
-    naive = datetime(2024, 1, 1, 12, 0, 0)
+    naive = datetime(2024, 1, 1, 12, 0, 0)  # noqa: DTZ001
     converted = convert_to_timezone(naive, "Europe/Moscow")
     assert converted.tzinfo is not None

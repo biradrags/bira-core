@@ -8,6 +8,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from bira_core.db import Base
 from bira_core.db.queries import claim_due, idempotent_transition
 
+pytestmark = pytest.mark.xdist_group(name="postgres")
+
 DSN = "postgresql+asyncpg://test:test@localhost:5499/test"
 
 

@@ -4,7 +4,7 @@ from aiogram import Bot
 from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
 from aiogram.types import BotCommand, Message, ReplyKeyboardRemove
-from aiogram.utils.markdown import html_decoration as hd
+from aiogram.utils.markdown import html_decoration as hd  # type: ignore[attr-defined]
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,8 @@ async def chat_id_command(message: Message) -> None:
         )
     if message.reply_to_message:
         text += f"\n💬 ID сообщения: {hd.pre(str(message.reply_to_message.message_id))}"
-    text += f"\n🫵 Ваш ID: {hd.pre(str(message.from_user.id))}"
+    if message.from_user:
+        text += f"\n🫵 Ваш ID: {hd.pre(str(message.from_user.id))}"
     await message.reply(text, disable_notification=True, parse_mode=ParseMode.HTML)
 
 

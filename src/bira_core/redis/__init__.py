@@ -18,6 +18,8 @@ _RECONNECT_ERRORS: tuple[type[BaseException], ...] = (
     TypeError,
 )
 
+__all__ = ["make_redis_client", "redis_connection_kwargs"]
+
 
 def redis_connection_kwargs(*, decode_responses: bool = True) -> dict[str, Any]:
     return {

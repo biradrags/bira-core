@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from bira_core.testing.db import rollback_session, savepoint_session
 
+pytestmark = pytest.mark.xdist_group(name="postgres")
+
 DSN = "postgresql+asyncpg://test:test@localhost:5499/test"
 
 

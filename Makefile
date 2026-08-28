@@ -6,7 +6,7 @@ install:
 docker-up:
 	docker compose up -d
 test:
-	uv run pytest -q
+	uv run pytest -q -n 2 --dist loadgroup
 lint:
 	uv run ruff check src tests && uv run ruff format --check src tests
 typecheck:

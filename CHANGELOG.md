@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.2.0 (2026-08-28)
+
+Полный харвест дублей флота (Phase A + B). Один релиз перед первым бот-адоптером.
+
+### Breaking
+
+- `setup_logging(level, *, extra_patterns=(), extra_silence=())` — logfmt + probe-filter + silence-список (v0.1 тонкий StreamHandler заменён).
+
+### Новые модули
+
+- `db.alembic`, `DbTenantSettings`, `TimestampMixin`, `db.queries`
+- `dt`, `redis` (публичный), `kbd`, `tg.commands/keyboards/last/media_transfer`
+- `dialogs`, `maxbot`, `forum`, `payments`, `protect` (L1–L4)
+- `notify.delivery`, `send_bulk`, `split_message`
+- `testing.db` (xdist lock, rollback/savepoint sessions)
+
+### web
+
+- `CRON_PORT`, `attach_cron_site`, `create_cron_app` (фикс `_cron_runner` до `.start()`).
+
+### Адаптации по донорам
+
+- TBank: только `hmac.compare_digest`; идемпотентный переход статуса в донорах ботов (Phase 0).
+- `media_transfer`: guard `Path(filename).name` против path traversal.
+
 ## v0.1.0 (draft)
 
 ### log/

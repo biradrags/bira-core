@@ -1,5 +1,4 @@
 from bira_core.tg.keyboards import (
-    CancelResetCD,
     ToMainMenuCD,
     build_cancel_back_keyboard,
     build_tbank_payment_keyboard,

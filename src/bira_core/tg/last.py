@@ -21,9 +21,7 @@ async def _not_supported_alert(callback_query: types.CallbackQuery) -> None:
     )
 
 
-async def _not_supported_delete(
-    callback_query: types.CallbackQuery, bot: Bot
-) -> None:
+async def _not_supported_delete(callback_query: types.CallbackQuery, bot: Bot) -> None:
     await callback_query.answer()
     if callback_query.message:
         with contextlib.suppress(Exception):

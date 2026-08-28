@@ -35,7 +35,9 @@ def resolve_ddl_url(
 
 
 class _Dsn:
-    def __init__(self, *, role: str, password: str, host: str, port: int, name: str) -> None:
+    def __init__(
+        self, *, role: str, password: str, host: str, port: int, name: str
+    ) -> None:
         self.user = role
         self.password = password
         self.host = host

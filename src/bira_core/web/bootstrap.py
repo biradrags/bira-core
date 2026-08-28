@@ -114,8 +114,10 @@ def attach_cron_site(
     async def _start(_: web.Application) -> None:
         runner = web.AppRunner(cron_app)
         await runner.setup()
-        app["_cron_runner"] = runner  # до .start(): иначе упавший бинд оставит раннер без cleanup
-        await web.TCPSite(runner, "0.0.0.0", port).start()  # noqa: S104
+        app["_cron_runner"] = (
+            runner  # до .start(): иначе упавший бинд оставит раннер без cleanup
+        )
+        await web.TCPSite(runner, "0.0.0.0", port).start()
 
     async def _stop(_: web.Application) -> None:
         await app["_cron_runner"].cleanup()

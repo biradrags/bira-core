@@ -8,6 +8,17 @@ from aiohttp import web
 from aiohttp.typedefs import Middleware
 
 from bira_core.protect.flood_guard import FloodGuard
+from bira_core.protect.heuristics import IsLikelyBot, StartDeduper
+from bira_core.protect.rate_limit import RateLimiter, UsageGate
+
+__all__ = [
+    "FloodGuard",
+    "IsLikelyBot",
+    "RateLimiter",
+    "StartDeduper",
+    "UsageGate",
+    "flood_guard_middleware",
+]
 
 
 def flood_guard_middleware(
