@@ -21,7 +21,9 @@ uv add "bira-core[db,di,redis,dialogs,protect] @ git+https://github.com/biradrag
 | `payments` | tenacity | `bira_core.payments` |
 | `max` | maxo | `bira_core.maxbot` |
 
-`maxo` не на PyPI — в `pyproject.toml` потребителя укажите git-source:
+`maxo` ставится с PyPI (апстрим [K1rL3s/maxo](https://github.com/K1rL3s/maxo)); тесты
+`bira_core.maxbot` идут против него. Потребителю на форке достаточно объявить свой
+git-source — диапазон `maxo>=0.8,<1.0` удовлетворяется и им:
 
 ```toml
 [tool.uv.sources]
