@@ -10,6 +10,8 @@ from aiohttp.typedefs import Middleware
 
 logger = logging.getLogger(__name__)
 
+CRON_PORT = 8081  # константа флота: bira-cron шлёт на <app>.flycast:8081
+
 _Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
 
 
