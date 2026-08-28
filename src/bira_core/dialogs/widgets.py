@@ -1,4 +1,7 @@
-from aiogram.types import CallbackQuery
+from typing import Any
+
+from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.api.protocols import DialogManager as DialogManagerProtocol
 from aiogram_dialog.widgets.kbd import Button, Group
@@ -12,11 +15,30 @@ async def cancel_reset(
 ) -> None:
     await manager.done(show_mode=ShowMode.NO_UPDATE)
     await manager.reset_stack(remove_keyboard=True)
+    if not isinstance(c.message, Message):
+        return
     text = "✘ Все диалоги закрыты ✘\nГотов к обработке новых запросов"
-    if c.message and c.message.text:
+    if c.message.text:
         await c.message.edit_text(text, reply_markup=None)
-    elif c.message and c.message.caption:
+    elif c.message.caption:
         await c.message.edit_caption(caption=text, reply_markup=None)
+
+
+async def cancel_delete(
+    c: CallbackQuery, button: Button, manager: DialogManager
+) -> None:
+    await manager.done(show_mode=ShowMode.NO_UPDATE)
+    await manager.reset_stack(remove_keyboard=True)
+    if not isinstance(c.message, Message):
+        return
+    bci = c.message.business_connection_id
+    if bci and c.message.bot is not None:
+        await c.message.bot.delete_business_messages(bci, [c.message.message_id])
+    else:
+        try:
+            await c.message.delete()
+        except TelegramBadRequest:
+            pass
 
 
 class ProgressSteps(Text):
@@ -26,7 +48,7 @@ class ProgressSteps(Text):
         current_step: int,
         filled: str = "🟥",
         empty: str = "⬜",
-        when=None,
+        when: Any = None,
     ) -> None:
         super().__init__(when)
         self.steps = steps
@@ -35,7 +57,7 @@ class ProgressSteps(Text):
         self.empty = empty
 
     async def _render_text(
-        self, data: dict, manager: DialogManagerProtocol
+        self, data: dict[str, Any], manager: DialogManagerProtocol
     ) -> str:
         return (
             self.filled * self.current_step
@@ -47,13 +69,13 @@ class ProgressSteps(Text):
 class AdaptiveGroup(Group):
     def __init__(
         self,
-        *buttons,
+        *buttons: Any,
         max_row_chars: int = DEFAULT_ROW_CHARS,
         id: str | None = None,
-        when=None,
+        when: Any = None,
     ) -> None:
         super().__init__(*buttons, id=id, width=1, when=when)
         self.max_row_chars = max_row_chars
 
-    def _wrap_kbd(self, kbd):
+    def _wrap_kbd(self, kbd: list[Any]) -> list[list[Any]]:  # type: ignore[override]
         return wrap_button_rows(kbd, self.max_row_chars)
