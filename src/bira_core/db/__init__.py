@@ -4,6 +4,8 @@ __all__ = [
     "Base",
     "BaseDAO",
     "DbDsn",
+    "DbTenantSettings",
+    "TimestampMixin",
     "build_url",
     "resolve_ddl_url",
     "run_migrations",
@@ -38,6 +40,22 @@ def __getattr__(name: str) -> Any:
             from bira_core.db.dao import BaseDAO
 
             return BaseDAO
+        except ImportError as e:
+            e.add_note("pip install bira-core[db]")
+            raise
+    if name == "DbTenantSettings":
+        try:
+            from bira_core.db.settings import DbTenantSettings
+
+            return DbTenantSettings
+        except ImportError as e:
+            e.add_note("pip install bira-core[db]")
+            raise
+    if name == "TimestampMixin":
+        try:
+            from bira_core.db.mixins import TimestampMixin
+
+            return TimestampMixin
         except ImportError as e:
             e.add_note("pip install bira-core[db]")
             raise
