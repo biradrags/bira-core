@@ -1,8 +1,10 @@
-.PHONY: help install test lint typecheck check
+.PHONY: help install test lint typecheck check docker-up
 help:
 	@grep -E '^[a-z-]+:' Makefile | sed 's/:.*//'
 install:
 	uv sync --all-extras
+docker-up:
+	docker compose up -d
 test:
 	uv run pytest -q
 lint:

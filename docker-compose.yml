@@ -9,3 +9,7 @@ services:
       POSTGRES_DB: test
     tmpfs:
       - /var/lib/postgresql/data
+  redis:
+    image: redis:7
+    ports:
+      - "6399:6379"
