@@ -1,3 +1,5 @@
+"""Stale-intent cleanup for dialogs."""
+
 import logging
 from collections.abc import Awaitable, Callable
 from contextlib import suppress
@@ -14,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 async def clear_stale_intent(error: ErrorEvent) -> None:
+    """Clear stale intent."""
     callback = error.update.callback_query
     if callback is None:
         return

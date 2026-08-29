@@ -1,3 +1,5 @@
+"""Telegram keyboard builders."""
+
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -12,14 +14,15 @@ __all__ = [
 
 
 class ToMainMenuCD(CallbackData, prefix="to_main_menu"):
-    pass
+    """To Main Menu C D."""
 
 
 class CancelResetCD(CallbackData, prefix="cancel_reset"):
-    pass
+    """Cancel Reset C D."""
 
 
 def build_cancel_back_keyboard() -> InlineKeyboardMarkup:
+    """Build cancel back keyboard."""
     builder = InlineKeyboardBuilder()
     builder.button(text="🔙 Назад", callback_data=ToMainMenuCD())
     builder.button(text="✖️ Отмена", callback_data=CancelResetCD())
@@ -27,6 +30,7 @@ def build_cancel_back_keyboard() -> InlineKeyboardMarkup:
 
 
 def build_tbank_payment_keyboard(payment_url: str) -> InlineKeyboardMarkup:
+    """Build tbank payment keyboard."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="💳 Оплатить картой (T‑Bank)", url=payment_url)],
@@ -37,6 +41,7 @@ def build_tbank_payment_keyboard(payment_url: str) -> InlineKeyboardMarkup:
 def single_button_keyboard(
     text: str, callback_data: CallbackData
 ) -> InlineKeyboardMarkup:
+    """Single button keyboard."""
     builder = InlineKeyboardBuilder()
     builder.button(text=text, callback_data=callback_data)
     return builder.as_markup()

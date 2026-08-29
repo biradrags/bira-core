@@ -1,3 +1,5 @@
+"""Dishka MAX bot token provider."""
+
 from collections.abc import Callable
 from typing import Protocol
 
@@ -9,14 +11,21 @@ from maxo.integrations.dishka import CONTAINER_NAME, setup_dishka
 
 
 class MaxToken(Protocol):
-    def get_secret_value(self) -> str: ...
+    """Max Token."""
+
+    def get_secret_value(self) -> str:
+        """Return Secret value."""
+        ...
 
 
 class MaxBotProvider(Provider):
+    """Max Bot Provider."""
+
     scope = Scope.APP
 
     @provide
     def provide_max_bot(self, token: MaxToken) -> MaxBot:
+        """Provide max bot."""
         return MaxBot(token=token.get_secret_value(), warming_up=False)
 
 
@@ -26,6 +35,7 @@ def create_max_dispatcher(
     setup_handlers: Callable[[MaxDispatcher], None] | None = None,
     setup_middlewares: Callable[[MaxDispatcher], None] | None = None,
 ) -> MaxDispatcher:
+    """Create max dispatcher."""
     key_builder = DefaultKeyBuilder(with_destiny=True)
     dp = MaxDispatcher(key_builder=key_builder)
     setup_dishka(container=container, dispatcher=dp, auto_inject=True)

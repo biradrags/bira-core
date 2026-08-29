@@ -7,13 +7,17 @@ from collections.abc import Callable
 
 
 class TokenBucket:
+    """Token Bucket."""
+
     def __init__(self, capacity: float, refill_per_sec: float) -> None:
+        """Initialize instance."""
         self._capacity = float(capacity)
         self._refill_per_sec = float(refill_per_sec)
         self._tokens = float(capacity)
         self._last = 0.0
 
     def try_consume(self, now: float, amount: float = 1.0) -> bool:
+        """Try consume."""
         elapsed = now - self._last
         if elapsed > 0:
             self._tokens = min(
@@ -41,6 +45,8 @@ class _PerKeyLimiter:
 
 
 class FloodGuard:
+    """Flood Guard."""
+
     def __init__(
         self,
         *,
@@ -50,11 +56,13 @@ class FloodGuard:
         global_burst: int,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
+        """Initialize instance."""
         self._per_key = _PerKeyLimiter(per_key_burst, per_key_rate)
         self._global = TokenBucket(global_burst, global_rate)
         self._clock = clock
 
     def allow(self, key: str) -> bool:
+        """Allow."""
         now = self._clock()
         if not self._per_key.allow(key, now):
             return False

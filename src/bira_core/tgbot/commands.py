@@ -1,3 +1,5 @@
+"""Shared Telegram command handlers."""
+
 import logging
 
 from aiogram import Bot
@@ -23,6 +25,7 @@ __all__ = [
 
 
 async def chat_id_command(message: Message) -> None:
+    """Chat id command."""
     text = f"🆔 ID этого чата: {hd.pre(str(message.chat.id))}"
     if message.message_thread_id:
         text += f"\n📝 ID этой подтемы: {hd.pre(str(message.message_thread_id))}"
@@ -39,6 +42,7 @@ async def chat_id_command(message: Message) -> None:
 
 
 async def cancel_command(message: Message, state: FSMContext) -> None:
+    """Cancel command."""
     current_state = await state.get_state()
     if current_state is None:
         return
@@ -51,6 +55,7 @@ async def cancel_command(message: Message, state: FSMContext) -> None:
 
 
 async def register_debug_commands(bot: Bot, superusers: list[int]) -> None:
+    """Register Debug commands."""
     from aiogram.exceptions import TelegramBadRequest
     from aiogram.types import BotCommandScopeChat
 

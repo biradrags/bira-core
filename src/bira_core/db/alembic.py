@@ -1,3 +1,5 @@
+"""Alembic env helpers for fleet migrations."""
+
 from __future__ import annotations
 
 import asyncio
@@ -21,6 +23,7 @@ def resolve_ddl_url(
     name: str,
     env_override: str = "DATABASE_URL",
 ) -> str:
+    """Resolve ddl url."""
     override = os.environ.get(env_override)
     if override:
         return override
@@ -51,6 +54,7 @@ def _connect_args_for_host(host: str) -> dict[str, object]:
 
 
 def run_migrations(config: Any, target_metadata: MetaData, *, host: str = "") -> None:
+    """Run migrations."""
     from alembic import context
 
     _connect_args = _connect_args_for_host(host)

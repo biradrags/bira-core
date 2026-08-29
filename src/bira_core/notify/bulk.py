@@ -1,3 +1,5 @@
+"""Bulk send with delivery classification."""
+
 from __future__ import annotations
 
 import asyncio
@@ -12,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass(slots=True)
 class BulkReport:
+    """Bulk Report."""
+
     sent: int = 0
     failed: int = 0
     failures: list[tuple[int, DeliveryFailure]] = field(default_factory=list)
@@ -24,6 +28,7 @@ async def send_bulk(
     concurrency: int = 1,
     delay: float = 0.05,
 ) -> BulkReport:
+    """Send bulk."""
     report = BulkReport()
     sem = asyncio.Semaphore(max(1, concurrency))
 

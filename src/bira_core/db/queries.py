@@ -1,3 +1,5 @@
+"""Shared SQLAlchemy query helpers."""
+
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -15,6 +17,7 @@ def idempotent_transition(
     from_status: Any,
     to_status: Any,
 ) -> Update:
+    """Idempotent transition."""
     return (
         update(model)
         .where(model.id == row_id, status_attr == from_status)
@@ -31,6 +34,7 @@ def claim_due(
     limit: int,
     set_values: Mapping[str, Any],
 ) -> Update:
+    """Claim due."""
     due = (
         select(model.id)
         .where(due_attr < now)

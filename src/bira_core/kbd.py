@@ -1,3 +1,5 @@
+"""Keyboard row wrapping by label width."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -12,6 +14,7 @@ __all__ = [
 
 
 def wrap_by_label_width(buttons: Sequence[Any], max_row_chars: int) -> list[list[Any]]:
+    """Wrap by label width."""
     rows: list[list[Any]] = []
     row: list[Any] = []
     row_len = 0

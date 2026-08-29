@@ -1,3 +1,5 @@
+"""In-memory and Redis rate limiters."""
+
 from __future__ import annotations
 
 import logging
@@ -9,16 +11,20 @@ logger = logging.getLogger(__name__)
 
 
 class RateLimitBackendUnavailable(Exception):
-    pass
+    """Rate Limit Backend Unavailable."""
 
 
 class RateLimiter:
+    """Rate Limiter."""
+
     def __init__(self, redis: Redis, *, fail_open: bool) -> None:
+        """Initialize instance."""
         self._redis = redis
         self._fail_open = fail_open
         self._fallback: dict[str, int] = {}
 
     async def allow(self, key: str, *, limit: int, window_s: int) -> bool:
+        """Allow."""
         try:
             async with self._redis.pipeline(transaction=True) as pipe:
                 pipe.incr(key)

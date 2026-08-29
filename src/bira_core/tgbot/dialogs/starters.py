@@ -1,3 +1,5 @@
+"""Dialog entry handlers registration."""
+
 import logging
 from collections.abc import Sequence
 from typing import Any
@@ -25,6 +27,8 @@ def register_start_handler(
     show_mode: ShowMode = ShowMode.AUTO,
     data: Data = None,
 ) -> None:
+    """Register Start handler."""
+
     async def start_dialog(
         message: Message,
         dialog_manager: DialogManager,
@@ -45,6 +49,8 @@ def register_callback_starter(
     show_mode: ShowMode = ShowMode.AUTO,
     data: Data = None,
 ) -> None:
+    """Register Callback starter."""
+
     async def start_dialog(
         callback: CallbackQuery,
         bg_manager_factory: BgManagerFactory,
@@ -81,6 +87,8 @@ def register_business_handler(
     data: Data = None,
     delete_on_start: bool = False,
 ) -> None:
+    """Register Business handler."""
+
     async def start_dialog(
         message: Message,
         dialog_manager: DialogManager,
@@ -100,6 +108,7 @@ async def cancel_state(
     state: FSMContext,
     dialog_manager: DialogManager,
 ) -> None:
+    """Cancel state."""
     await dialog_manager.reset_stack(remove_keyboard=True)
     await cancel_command(message, state)
 
@@ -109,6 +118,7 @@ def register_cancel_state(
     *,
     commands: str | Sequence[str] = "cancel",
 ) -> None:
+    """Register Cancel state."""
     router.message.register(cancel_state, Command(commands=commands))
 
 

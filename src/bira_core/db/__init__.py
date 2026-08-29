@@ -1,3 +1,5 @@
+"""Database layer facade."""
+
 from typing import Any
 
 __all__ = [

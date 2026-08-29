@@ -1,3 +1,5 @@
+"""Payment provider facade."""
+
 from bira_core.payments.tbank import (
     TBankClient,
     TBankNetworkError,

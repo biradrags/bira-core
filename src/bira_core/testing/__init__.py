@@ -1,3 +1,5 @@
+"""Test fixtures facade."""
+
 from typing import Any
 
 __all__ = [

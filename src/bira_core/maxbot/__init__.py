@@ -1,3 +1,5 @@
+"""MAX bot helpers facade."""
+
 from bira_core.maxbot.di import MaxBotProvider, create_max_dispatcher
 from bira_core.maxbot.dialogs import cancel_delete
 from bira_core.maxbot.errors import clear_stale_intent, register_stale_intent

@@ -1,3 +1,5 @@
+"""MAX dialog cancel/delete helpers."""
+
 from maxo.dialogs import DialogManager, ShowMode
 from maxo.dialogs.widgets.kbd import Button
 from maxo.routing.updates import MessageCallback
@@ -10,6 +12,7 @@ async def cancel_delete(
     _button: Button,
     manager: DialogManager,
 ) -> None:
+    """Cancel delete."""
     message_id = _message_id_for_delete(event, manager)
     bot = manager.middleware_data["bot"]
     await manager.done(show_mode=ShowMode.NO_UPDATE)

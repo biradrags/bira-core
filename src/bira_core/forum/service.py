@@ -1,3 +1,5 @@
+"""Forum topic ensure/send with per-key locking."""
+
 from __future__ import annotations
 
 import asyncio
@@ -18,9 +20,15 @@ TOPIC_GONE_MARKERS = frozenset(
 
 @runtime_checkable
 class ThreadStore(Protocol):
-    async def get_thread_id(self, key: str) -> int | None: ...
+    """Thread Store."""
 
-    async def set_thread_id(self, key: str, thread_id: int) -> None: ...
+    async def get_thread_id(self, key: str) -> int | None:
+        """Return Thread id."""
+        ...
+
+    async def set_thread_id(self, key: str, thread_id: int) -> None:
+        """Set thread id."""
+        ...
 
 
 def _is_topic_gone(exc: BaseException) -> bool:
@@ -33,6 +41,8 @@ def _is_topic_gone(exc: BaseException) -> bool:
 
 
 class ForumTopics:
+    """Forum Topics."""
+
     def __init__(
         self,
         bot: Any,
@@ -41,6 +51,7 @@ class ForumTopics:
         *,
         call_timeout: float = 15,
     ) -> None:
+        """Initialize instance."""
         self._bot = bot
         self._forum_chat_id = forum_chat_id
         self._store = store
@@ -48,6 +59,7 @@ class ForumTopics:
         self._locks: dict[str, asyncio.Lock] = {}
 
     async def ensure_topic(self, key: str, name: str) -> int:
+        """Ensure topic."""
         topic_id = await self._store.get_thread_id(key)
         if topic_id is not None:
             return topic_id
@@ -68,6 +80,7 @@ class ForumTopics:
         topic_name: str,
         **kwargs: Any,
     ) -> Any:
+        """Send."""
         from aiogram.exceptions import TelegramBadRequest
 
         topic_id = await self.ensure_topic(key, topic_name)

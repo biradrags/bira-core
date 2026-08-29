@@ -1,3 +1,5 @@
+"""Telegram webhook/polling bootstrap."""
+
 from __future__ import annotations
 
 import logging
@@ -24,6 +26,7 @@ def create_app(
     container: AsyncContainer | None = None,
     extra_routes: Sequence[RouteDef] = (),
 ) -> web.Application:
+    """Create app."""
     app = web.Application()
     app.router.add_get("/health", _health)
     for route in extra_routes:
@@ -58,6 +61,7 @@ async def run_webhook(
     container: AsyncContainer | None = None,
     extra_routes: Sequence[RouteDef] = (),
 ) -> None:
+    """Run webhook."""
     path = urlparse(webhook_url).path if webhook_url.startswith("http") else webhook_url
     app = create_app(
         dp,
@@ -79,6 +83,7 @@ async def run_webhook(
 
 
 async def run_polling(dp: Dispatcher, bot: Bot) -> None:
+    """Run polling."""
     try:
         await bot.delete_webhook(drop_pending_updates=False)
         await dp.start_polling(bot)

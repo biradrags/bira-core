@@ -1,3 +1,5 @@
+"""Outbound messaging facade."""
+
 from typing import Any
 
 from bira_core.notify.bulk import BulkReport, send_bulk

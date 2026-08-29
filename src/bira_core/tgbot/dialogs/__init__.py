@@ -1,3 +1,5 @@
+"""aiogram-dialog helpers facade."""
+
 from bira_core.tgbot.dialogs.debug import print_router_tree
 from bira_core.tgbot.dialogs.errors import clear_stale_intent, register_stale_intent
 from bira_core.tgbot.dialogs.notifier import TgDialogNotifier

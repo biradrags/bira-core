@@ -1,3 +1,5 @@
+"""Postgres test database helpers."""
+
 from __future__ import annotations
 
 import os
@@ -19,6 +21,7 @@ def xdist_locked_migrations(
     request: pytest.FixtureRequest,
     run_migrations: Callable[[], None],
 ) -> None:
+    """Xdist locked migrations."""
     if not hasattr(request.config, "workerinput"):
         run_migrations()
         return
@@ -42,6 +45,7 @@ def xdist_locked_migrations(
 
 @asynccontextmanager
 async def rollback_session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
+    """Rollback session."""
     session_factory = async_sessionmaker(
         engine,
         class_=AsyncSession,
@@ -57,6 +61,7 @@ async def rollback_session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
 
 @asynccontextmanager
 async def savepoint_session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
+    """Savepoint session."""
     async with engine.connect() as conn:
         trans = await conn.begin()
         async with AsyncSession(
@@ -74,6 +79,7 @@ async def savepoint_session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
 async def savepoint_session_from_connection(
     connection: AsyncConnection,
 ) -> AsyncIterator[AsyncSession]:
+    """Savepoint session from connection."""
     async with AsyncSession(
         bind=connection,
         expire_on_commit=False,
@@ -85,6 +91,8 @@ async def savepoint_session_from_connection(
 def rollback_session_fixture(
     engine: AsyncEngine,
 ) -> Callable[[], AsyncIterator[AsyncSession]]:
+    """Rollback session fixture."""
+
     @pytest.fixture
     async def _session() -> AsyncIterator[AsyncSession]:
         async with rollback_session(engine) as session:
@@ -96,6 +104,8 @@ def rollback_session_fixture(
 def savepoint_session_fixture(
     engine: AsyncEngine,
 ) -> Callable[[], AsyncIterator[AsyncSession]]:
+    """Savepoint session fixture."""
+
     @pytest.fixture
     async def _session() -> AsyncIterator[AsyncSession]:
         async with savepoint_session(engine) as session:

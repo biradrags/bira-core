@@ -59,3 +59,9 @@ python_version = "3.12"
 strict = true
 packages = ["bira_core"]
 mypy_path = "src"
+
+[tool.ruff.lint]
+extend-select = ["D100", "D101", "D102", "D103", "D104", "D107"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]

@@ -1,3 +1,5 @@
+"""Fly cron middleware and port constant."""
+
 from __future__ import annotations
 
 import asyncio
@@ -16,6 +18,8 @@ _Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
 
 
 def fly_src_gate(allowed: frozenset[str]) -> Middleware:
+    """Fly src gate."""
+
     @web.middleware
     async def middleware(request: web.Request, handler: _Handler) -> web.StreamResponse:
         src = _caller_app(request)
@@ -34,6 +38,8 @@ _locks: dict[str, asyncio.Lock] = {}
 
 
 def cron_protocol() -> Middleware:
+    """Cron protocol."""
+
     @web.middleware
     async def middleware(request: web.Request, handler: _Handler) -> web.StreamResponse:
         name = request.match_info.get("job") or request.path.lstrip("/")

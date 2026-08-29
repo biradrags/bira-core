@@ -1,3 +1,5 @@
+"""Stale callback button handlers."""
+
 import contextlib
 import logging
 from typing import Literal
@@ -10,6 +12,7 @@ __all__ = ["setup_last_router"]
 
 
 def setup_last_router(strategy: Literal["alert", "delete"]) -> Router:
+    """Configure Last router."""
     router = Router(name="bira_core.last")
     handler = _not_supported_alert if strategy == "alert" else _not_supported_delete
     router.callback_query.register(handler)

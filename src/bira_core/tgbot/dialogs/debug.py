@@ -1,7 +1,10 @@
+"""Router tree debug printer."""
+
 from aiogram import Dispatcher, Router
 
 
 def print_router_tree(router: Router, indent: int = 0) -> str:
+    """Print router tree."""
     if isinstance(router, Dispatcher):
         result = " " * indent + "dispatcher"
     else:

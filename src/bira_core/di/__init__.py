@@ -1,3 +1,5 @@
+"""Dishka provider facade."""
+
 from typing import Any
 
 __all__ = ["DbProvider", "NotifierProvider", "RedisProvider", "warm_up"]

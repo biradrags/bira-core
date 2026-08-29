@@ -1,3 +1,5 @@
+"""MAX dialog notifier with TTL feedback."""
+
 from __future__ import annotations
 
 import logging
@@ -22,6 +24,7 @@ class MaxDialogNotifier:
     DEFAULT_TTL_SEC = 5.0
 
     def __init__(self, bot: Bot) -> None:
+        """Initialize instance."""
         self._bot = bot
         self._deleter = DelayedDeleter()
 
@@ -32,6 +35,7 @@ class MaxDialogNotifier:
         *,
         ttl: float = DEFAULT_TTL_SEC,
     ) -> None:
+        """Answer."""
         event = manager.event
         if not isinstance(event, MessageCreated):
             return
@@ -65,9 +69,11 @@ class MaxDialogNotifier:
         *,
         ttl: float = DEFAULT_TTL_SEC,
     ) -> None:
+        """Warn."""
         await self.answer(manager, f"⚠️ {text}", ttl=ttl)
 
     async def delete(self, chat_id: int, message_id: str) -> bool:
+        """Delete."""
         try:
             await self._bot.delete_message(message_id=message_id)
         except MaxBotBadRequestError as exc:
@@ -82,6 +88,7 @@ class MaxDialogNotifier:
             return True
 
     async def ack(self, callback: MessageCallback) -> bool:
+        """Ack."""
         try:
             await callback.callback_answer()
         except MaxBotBadRequestError as exc:
@@ -97,4 +104,5 @@ class MaxDialogNotifier:
             return True
 
     async def shutdown(self) -> None:
+        """Shutdown."""
         await self._deleter.shutdown()

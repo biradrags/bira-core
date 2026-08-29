@@ -1,3 +1,5 @@
+"""Telegram bot helpers facade."""
+
 from bira_core.tgbot.commands import (
     CANCEL_COMMAND,
     CHAT_ID_COMMAND,

@@ -1,3 +1,5 @@
+"""aiohttp web bootstrap facade."""
+
 from typing import Any
 
 from bira_core.web.bootstrap import attach_cron_site, create_cron_app

@@ -1,3 +1,5 @@
+"""Ops alert channel to Telegram."""
+
 from __future__ import annotations
 
 import logging
@@ -11,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class Alerts:
+    """Alerts."""
+
     def __init__(
         self,
         sender: MessageSender,
@@ -20,6 +24,7 @@ class Alerts:
         urgent_mention: str = "",
         now: Callable[[], float] = time.monotonic,
     ) -> None:
+        """Initialize instance."""
         self._sender = sender
         self._owner_chat_id = owner_chat_id
         self._window_s = window_s
@@ -34,6 +39,7 @@ class Alerts:
         *,
         urgent: bool = False,
     ) -> None:
+        """Alert."""
         now = self._now()
         last = self._last.get(kind)
         if last is not None and now - last < self._window_s:

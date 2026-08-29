@@ -24,6 +24,8 @@ def flood_guard_middleware(
     guard: FloodGuard,
     rate_key: Callable[[web.Request], str],
 ) -> Middleware:
+    """Flood guard middleware."""
+
     @web.middleware
     async def middleware(
         request: web.Request, handler: Callable[..., Awaitable[web.StreamResponse]]

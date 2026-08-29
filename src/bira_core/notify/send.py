@@ -1,3 +1,5 @@
+"""Safe single-message send helper."""
+
 from __future__ import annotations
 
 import asyncio
@@ -19,9 +21,13 @@ _MAX_FLOOD_WAIT_SLEEP = 30
 
 @runtime_checkable
 class MessageSender(Protocol):
+    """Message Sender."""
+
     async def send_message(
         self, chat_id: int, text: str, **kwargs: Any
-    ) -> Message | None: ...
+    ) -> Message | None:
+        """Send message."""
+        ...
 
 
 async def safe_send(
@@ -34,6 +40,7 @@ async def safe_send(
     message_thread_id: int | None = None,
     **kwargs: Any,
 ) -> Message | None:
+    """Safe send."""
     result = await deliver(
         bot,
         chat_id,
@@ -56,6 +63,8 @@ async def deliver(
     message_thread_id: int | None = None,
     **kwargs: Any,
 ) -> DeliveryResult:
+    """Deliver."""
+
     async def _attempt() -> Message:
         if photo:
             return await bot.send_photo(

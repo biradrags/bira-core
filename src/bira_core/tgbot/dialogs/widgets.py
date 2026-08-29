@@ -1,3 +1,5 @@
+"""Dialog widgets and cancel actions."""
+
 from typing import Any
 
 from aiogram.exceptions import TelegramBadRequest
@@ -13,6 +15,7 @@ from bira_core.kbd import DEFAULT_ROW_CHARS, wrap_by_label_width
 async def cancel_delete(
     c: CallbackQuery, button: Button, manager: DialogManager
 ) -> None:
+    """Cancel delete."""
     await manager.done(show_mode=ShowMode.NO_UPDATE)
     await manager.reset_stack(remove_keyboard=True)
     if not isinstance(c.message, Message):
@@ -28,6 +31,8 @@ async def cancel_delete(
 
 
 class ProgressSteps(Text):
+    """Progress Steps."""
+
     def __init__(
         self,
         steps: int,
@@ -36,6 +41,7 @@ class ProgressSteps(Text):
         empty: str = "⬜",
         when: Any = None,
     ) -> None:
+        """Initialize instance."""
         super().__init__(when)
         self.steps = steps
         self.current_step = current_step
@@ -53,6 +59,8 @@ class ProgressSteps(Text):
 
 
 class AdaptiveGroup(Group):
+    """Adaptive Group."""
+
     def __init__(
         self,
         *buttons: Any,
@@ -60,6 +68,7 @@ class AdaptiveGroup(Group):
         id: str | None = None,
         when: Any = None,
     ) -> None:
+        """Initialize instance."""
         super().__init__(*buttons, id=id, width=1, when=when)
         self.max_row_chars = max_row_chars
 

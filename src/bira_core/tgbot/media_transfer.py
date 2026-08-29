@@ -1,3 +1,5 @@
+"""Download media for cross-bot transfer."""
+
 from __future__ import annotations
 
 import logging
@@ -25,6 +27,7 @@ __all__ = [
 
 
 def extract_content(message: Message) -> str | None:
+    """Extract content."""
     if message.text:
         return message.text
     if message.sticker:
@@ -59,6 +62,8 @@ def extract_content(message: Message) -> str | None:
 
 @dataclass
 class TransferResult:
+    """Transfer Result."""
+
     sent: Message | None = None
     skipped: bool = False
     error: str | None = None
@@ -72,6 +77,7 @@ async def download_file_for_transfer(
     file_size: int | None,
     filename: str | None = None,
 ) -> AsyncIterator[Path | None]:
+    """Download file for transfer."""
     if file_size is None or file_size > MAX_FILE_SIZE:
         yield None
         return
@@ -113,6 +119,7 @@ async def transfer_message(
     dst_thread_id: int | None = None,
     business_connection_id: str | None = None,
 ) -> TransferResult:
+    """Transfer message."""
     try:
         if src_message.contact:
             return TransferResult(skipped=True)
@@ -274,6 +281,7 @@ async def transfer_message(
 
 
 def get_media_label(message: Message) -> str:
+    """Return Media label."""
     if message.contact:
         c = message.contact
         name = " ".join(filter(None, [c.first_name, c.last_name]))

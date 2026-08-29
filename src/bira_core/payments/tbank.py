@@ -1,3 +1,5 @@
+"""T-Bank payment client."""
+
 from __future__ import annotations
 
 import hashlib
@@ -15,6 +17,7 @@ from tenacity import (
 
 
 def build_tbank_token(params: Mapping[str, Any], password: str) -> str:
+    """Build tbank token."""
     items: list[tuple[str, str]] = []
     for key, value in params.items():
         if key in ("Token", "DATA", "Receipt"):
@@ -33,16 +36,19 @@ def build_tbank_token(params: Mapping[str, Any], password: str) -> str:
 
 
 def verify_tbank_token(params: Mapping[str, Any], password: str) -> bool:
+    """Verify tbank token."""
     token = str(params.get("Token") or "")
     expected = build_tbank_token(params, password)
     return hmac.compare_digest(token.encode("utf-8"), expected.encode("utf-8"))
 
 
 class TBankNetworkError(Exception):
-    pass
+    """T Bank Network Error."""
 
 
 class TBankClient:
+    """T Bank Client."""
+
     def __init__(
         self,
         *,
@@ -51,6 +57,7 @@ class TBankClient:
         api_base_url: str,
         session: aiohttp.ClientSession,
     ) -> None:
+        """Initialize instance."""
         self._terminal_key = terminal_key
         self._password = password
         self._api_base_url = api_base_url.rstrip("/")
@@ -80,7 +87,9 @@ class TBankClient:
         return data
 
     async def init(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Init."""
         return await self._post("/Init", payload)
 
     async def cancel(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Cancel."""
         return await self._post("/Cancel", payload)

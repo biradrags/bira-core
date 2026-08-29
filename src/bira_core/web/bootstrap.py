@@ -1,3 +1,5 @@
+"""Cron app factory and health route."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -16,6 +18,7 @@ def create_cron_app(
     allowed: frozenset[str] = frozenset({"bira-cron"}),
     container: AsyncContainer | None = None,
 ) -> web.Application:
+    """Create cron app."""
     app = web.Application(middlewares=[fly_src_gate(allowed), cron_protocol()])
     app.router.add_routes(routes)
     if container is not None:

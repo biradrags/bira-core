@@ -1,3 +1,5 @@
+"""Unhandled update error registration."""
+
 import logging
 
 from aiogram import Router
@@ -11,6 +13,8 @@ __all__ = ["register_error_handlers"]
 
 
 def register_error_handlers(router: Router, *, alerts: Alerts | None = None) -> None:
+    """Register Error handlers."""
+
     async def handler(error: ErrorEvent) -> None:
         await _handle_error(error, alerts=alerts)
 

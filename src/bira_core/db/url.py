@@ -1,9 +1,13 @@
+"""DSN builder for async Postgres."""
+
 from typing import Protocol
 
 from sqlalchemy import URL
 
 
 class DbDsn(Protocol):
+    """Db Dsn."""
+
     host: str
     port: int
     user: str
@@ -12,6 +16,7 @@ class DbDsn(Protocol):
 
 
 def build_url(dsn: DbDsn, *, driver: str = "postgresql+asyncpg") -> URL:
+    """Build url."""
     return URL.create(
         driver,
         username=dsn.user,

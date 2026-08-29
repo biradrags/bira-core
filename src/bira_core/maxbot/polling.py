@@ -1,3 +1,5 @@
+"""MAX long-polling bootstrap."""
+
 from __future__ import annotations
 
 import asyncio
@@ -17,7 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 class SecondaryBotFactory(Protocol):
-    def create_dispatcher(self) -> Dispatcher: ...
+    """Secondary Bot Factory."""
+
+    def create_dispatcher(self) -> Dispatcher:
+        """Create dispatcher."""
+        ...
 
 
 async def run_long_polling(
@@ -26,6 +32,7 @@ async def run_long_polling(
     *,
     prepare: Callable[[Bot], Any] | None = None,
 ) -> None:
+    """Run long polling."""
     await drop_webhook_subscriptions(bot)
     if prepare is not None:
         await prepare(bot)
@@ -34,17 +41,21 @@ async def run_long_polling(
 
 
 class MaxPollingManager:
+    """Max Polling Manager."""
+
     def __init__(
         self,
         container: AsyncContainer,
         *,
         secondary_factory: SecondaryBotFactory,
     ) -> None:
+        """Initialize instance."""
         self._container = container
         self._secondary_factory = secondary_factory
         self._tasks: dict[int, asyncio.Task[None]] = {}
 
     async def start_main(self) -> None:
+        """Start main."""
         bot = await self._container.get(Bot)
         dp = await self._container.get(Dispatcher)
         await drop_webhook_subscriptions(bot)
@@ -53,6 +64,7 @@ class MaxPollingManager:
         logger.info("Max main bot polling started")
 
     async def register_bot(self, bot_id: int, token: str) -> None:
+        """Register Bot."""
         if bot_id in self._tasks:
             return
         dp = self._secondary_factory.create_dispatcher()
@@ -63,12 +75,14 @@ class MaxPollingManager:
         logger.info("max secondary bot polling started", extra={"bot_id": bot_id})
 
     async def unregister_bot(self, bot_id: int) -> None:
+        """Unregister bot."""
         task = self._tasks.pop(bot_id, None)
         if task:
             await self._cancel_task(bot_id=bot_id, task=task)
             logger.info("max secondary bot polling stopped", extra={"bot_id": bot_id})
 
     async def stop_all(self) -> None:
+        """Stop all."""
         for bot_id in list(self._tasks):
             task = self._tasks.pop(bot_id)
             await self._cancel_task(bot_id=bot_id, task=task)
@@ -87,6 +101,7 @@ class MaxPollingManager:
 
 
 async def stop_max_polling(app: web.Application) -> None:
+    """Stop max polling."""
     polling_mgr = app.get("max_polling_manager")
     if polling_mgr is not None:
         await polling_mgr.stop_all()

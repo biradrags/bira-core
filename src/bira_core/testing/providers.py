@@ -1,3 +1,5 @@
+"""Dishka test provider overrides."""
+
 import importlib
 from typing import Any, cast
 from unittest import mock
@@ -8,22 +10,29 @@ from dishka import Provider, Scope, provide
 
 
 class MockBotProvider(Provider):
+    """Mock Bot Provider."""
+
     scope = Scope.APP
 
     @provide
     async def get_bot_session(self) -> BaseSession:
+        """Return Bot session."""
         return mock.AsyncMock(BaseSession)
 
     @provide
     async def get_bot(self, session: BaseSession) -> Bot:
+        """Return Bot."""
         return Bot(token="42:FAKE_TOKEN_FOR_TESTS_ONLY", session=session)
 
 
 class MockMessageManagerProvider(Provider):
+    """Mock Message Manager Provider."""
+
     scope = Scope.APP
 
     @provide
     def get_manager(self) -> Any:
+        """Return Manager."""
         try:
             mod = importlib.import_module("aiogram_dialog.test_tools")
         except ImportError as e:
@@ -39,10 +48,13 @@ except ImportError:  # pragma: no cover - optional [max] extra
 
 
 class MockMaxMessageManagerProvider(Provider):
+    """Mock Max Message Manager Provider."""
+
     scope = Scope.APP
 
     @provide
     def get_max_message_manager(self) -> Any:
+        """Return Max message manager."""
         try:
             mod = importlib.import_module("maxo.dialogs.test_tools")
         except ImportError as e:
@@ -52,10 +64,13 @@ class MockMaxMessageManagerProvider(Provider):
 
 
 class MockMaxDpProvider(Provider):
+    """Mock Max Dp Provider."""
+
     scope = Scope.APP
 
     @provide
     def get_json_storage(self) -> Any:
+        """Return Json storage."""
         mod = importlib.import_module("maxo.dialogs.test_tools.memory_storage")
         return mod.JsonMemoryStorage()
 
@@ -65,6 +80,7 @@ class MockMaxDpProvider(Provider):
         storage: Any,
         max_mm: Any,
     ) -> MaxDispatcher:
+        """Create max dispatcher."""
         maxo_mod = importlib.import_module("maxo")
         key_builder_mod = importlib.import_module("maxo.fsm.key_builder")
 

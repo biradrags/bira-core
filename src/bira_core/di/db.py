@@ -1,3 +1,5 @@
+"""Dishka database session provider."""
+
 from collections.abc import AsyncIterable
 
 from dishka import Provider, Scope, provide
@@ -12,15 +14,19 @@ from bira_core.db.url import DbDsn, build_url
 
 
 class DbProvider(Provider):
+    """Db Provider."""
+
     scope = Scope.APP
 
     def __init__(self, *, pool_size: int, max_overflow: int) -> None:
+        """Initialize instance."""
         super().__init__()
         self._pool_size = pool_size
         self._max_overflow = max_overflow
 
     @provide
     async def engine(self, dsn: DbDsn) -> AsyncIterable[AsyncEngine]:
+        """Engine."""
         url = build_url(dsn)
         connect_args: dict[str, object] = {}
         host = (url.host or "").lower()
@@ -40,6 +46,7 @@ class DbProvider(Provider):
 
     @provide
     def pool(self, engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
+        """Pool."""
         return async_sessionmaker(
             bind=engine,
             class_=AsyncSession,
@@ -52,5 +59,6 @@ class DbProvider(Provider):
     async def session(
         self, pool: async_sessionmaker[AsyncSession]
     ) -> AsyncIterable[AsyncSession]:
+        """Session."""
         async with pool() as session:
             yield session

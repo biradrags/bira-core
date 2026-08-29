@@ -1,3 +1,5 @@
+"""MAX webhook helpers."""
+
 import logging
 
 from maxo import Bot
@@ -6,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 async def drop_webhook_subscriptions(bot: Bot) -> None:
+    """Drop webhook subscriptions."""
     if not bot.state.started:
         await bot.start()
     result = await bot.get_subscriptions()

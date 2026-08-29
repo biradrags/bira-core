@@ -1,7 +1,11 @@
+"""Database connection settings DTO."""
+
 from pydantic import BaseModel, SecretStr
 
 
 class DbTenantSettings(BaseModel):
+    """Db Tenant Settings."""
+
     db_host: str
     db_port: int
     db_name: str

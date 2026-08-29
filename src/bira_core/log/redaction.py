@@ -1,3 +1,5 @@
+"""Public redaction API for logs and extras."""
+
 from bira_core.log._internal import (
     RECORD_ATTRS,
     RedactionFilter,

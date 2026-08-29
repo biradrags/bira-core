@@ -1,3 +1,6 @@
+"""Plain-text message splitter with numbering."""
+
+
 def split_message(text: str, limit: int = 4096, *, numbering: bool = True) -> list[str]:
     """Plain text; с parse_mode=HTML не сочетать."""
     if len(text) <= limit:
