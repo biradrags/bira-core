@@ -3,14 +3,14 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from aiogram.types import Chat, Message, User
 
-from bira_core.tg.commands import (
+from bira_core.tgbot.commands import (
     CANCEL_COMMAND,
     CHAT_ID_COMMAND,
     cancel_command,
     chat_id_command,
     register_debug_commands,
 )
-from bira_core.tg.filters import IsServiceChat
+from bira_core.tgbot.filters import IsServiceChat
 
 
 @pytest.fixture

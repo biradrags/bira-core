@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from aiogram.types import CallbackQuery, Chat, Message, User
 
-from bira_core.tg.last import setup_last_router
+from bira_core.tgbot.last import setup_last_router
 
 
 @pytest.fixture

@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from aiogram.types import Message
 
-from bira_core.tg.media_transfer import (
+from bira_core.tgbot.media_transfer import (
     download_file_for_transfer,
     extract_content,
     get_media_label,

@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from bira_core.dialogs.debug import print_router_tree
+from bira_core.tgbot.dialogs.debug import print_router_tree
 
 
 def test_print_router_tree() -> None:

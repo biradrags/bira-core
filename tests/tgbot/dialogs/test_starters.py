@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
 
-from bira_core.dialogs.starters import cancel_state, register_cancel_state
+from bira_core.tgbot.dialogs.starters import cancel_state, register_cancel_state
 
 
 class _States(StatesGroup):

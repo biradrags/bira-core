@@ -4,7 +4,7 @@ import pytest
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery, Message
 
-from bira_core.dialogs.notifier import TgDialogNotifier
+from bira_core.tgbot.dialogs.notifier import TgDialogNotifier
 
 
 @pytest.mark.asyncio

@@ -21,7 +21,7 @@ def __getattr__(name: str) -> Any:
     if name not in _TGBOT_EXPORTS:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     try:
-        from bira_core.tg import web_bootstrap as mod
+        from bira_core.tgbot import web_bootstrap as mod
     except ImportError as e:
         e.add_note("pip install bira-core[tgbot]")
         raise

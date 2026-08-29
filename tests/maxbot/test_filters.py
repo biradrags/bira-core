@@ -9,8 +9,8 @@ from bira_core.maxbot.web import drop_webhook_subscriptions
 
 
 class _User:
-    def __init__(self, tg_id: int) -> None:
-        self.tg_id = tg_id
+    def __init__(self, user_id: int) -> None:
+        self.user_id = user_id
 
 
 @pytest.mark.asyncio

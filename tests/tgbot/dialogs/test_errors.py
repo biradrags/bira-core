@@ -4,7 +4,7 @@ import pytest
 from aiogram import Router
 from aiogram.types import CallbackQuery, Message
 
-from bira_core.dialogs.errors import clear_stale_intent, register_stale_intent
+from bira_core.tgbot.dialogs.errors import clear_stale_intent, register_stale_intent
 
 
 class _Notifier:

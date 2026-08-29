@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from bira_core.dialogs.widgets import AdaptiveGroup, ProgressSteps
 from bira_core.kbd import wrap_by_label_width
+from bira_core.tgbot.dialogs.widgets import AdaptiveGroup, ProgressSteps
 
 
 @pytest.mark.asyncio

@@ -6,7 +6,7 @@ from maxo.types import BaseUpdate
 
 
 class MaxUser(Protocol):
-    tg_id: int
+    user_id: int
 
 
 class IsSuperAdmin(BaseFilter[BaseUpdate]):
@@ -17,4 +17,4 @@ class IsSuperAdmin(BaseFilter[BaseUpdate]):
         user: MaxUser | None = ctx.get("user")
         if user is None:
             return False
-        return user.tg_id in self._superusers
+        return user.user_id in self._superusers

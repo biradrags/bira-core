@@ -11,7 +11,7 @@ from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 from aiogram_dialog import BgManagerFactory, Data, DialogManager, ShowMode, StartMode
 
-from bira_core.dialogs.errors import StaleIntentNotifier
+from bira_core.tgbot.dialogs.errors import StaleIntentNotifier
 
 logger = logging.getLogger(__name__)
 

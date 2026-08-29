@@ -1,4 +1,4 @@
-from bira_core.tg.keyboards import (
+from bira_core.tgbot.keyboards import (
     ToMainMenuCD,
     build_cancel_back_keyboard,
     build_tbank_payment_keyboard,
