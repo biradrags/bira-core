@@ -15,17 +15,6 @@ CRON_PORT = 8081  # константа флота: bira-cron шлёт на <app>
 _Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
 
 
-def _caller_app(request: web.Request) -> str | None:
-    raw = request.headers.get("fly-src")
-    if not raw:
-        return None
-    for part in raw.split(";"):
-        key, _, value = part.partition("=")
-        if key.strip() == "app":
-            return value.strip()
-    return None
-
-
 def fly_src_gate(allowed: frozenset[str]) -> Middleware:
     @web.middleware
     async def middleware(request: web.Request, handler: _Handler) -> web.StreamResponse:
@@ -71,3 +60,14 @@ def cron_protocol() -> Middleware:
             return web.json_response({"job": name, "status": "ok", "took_ms": took_ms})
 
     return middleware
+
+
+def _caller_app(request: web.Request) -> str | None:
+    raw = request.headers.get("fly-src")
+    if not raw:
+        return None
+    for part in raw.split(";"):
+        key, _, value = part.partition("=")
+        if key.strip() == "app":
+            return value.strip()
+    return None

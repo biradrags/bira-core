@@ -8,25 +8,6 @@ _RESERVED_KEYS = frozenset({"level", "logger", "msg", "exc", "stack"})
 _MAX_VAL = 120
 
 
-def _safe_key(key: str) -> str:
-    return f"{key}_" if key in _RESERVED_KEYS else key
-
-
-def _fmt_val(value: object, limit: int | None = _MAX_VAL) -> str:
-    text = str(value)
-    if limit is not None and len(text) > limit:
-        text = text[:limit] + "…"
-    if text == "" or any(ch in text for ch in ' ="\n\t'):
-        escaped = (
-            text.replace("\\", "\\\\")
-            .replace('"', '\\"')
-            .replace("\n", "\\n")
-            .replace("\t", "\\t")
-        )
-        return f'"{escaped}"'
-    return text
-
-
 class LogfmtFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         parts = [
@@ -58,3 +39,22 @@ class ProbeAccessFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         msg = record.getMessage()
         return not any(path in msg for path in self._SKIP)
+
+
+def _safe_key(key: str) -> str:
+    return f"{key}_" if key in _RESERVED_KEYS else key
+
+
+def _fmt_val(value: object, limit: int | None = _MAX_VAL) -> str:
+    text = str(value)
+    if limit is not None and len(text) > limit:
+        text = text[:limit] + "…"
+    if text == "" or any(ch in text for ch in ' ="\n\t'):
+        escaped = (
+            text.replace("\\", "\\\\")
+            .replace('"', '\\"')
+            .replace("\n", "\\n")
+            .replace("\t", "\\t")
+        )
+        return f'"{escaped}"'
+    return text

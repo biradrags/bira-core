@@ -10,10 +10,6 @@ from dishka.integrations.aiohttp import setup_dishka
 from bira_core.web.cron import CRON_PORT, cron_protocol, fly_src_gate
 
 
-async def _health(_: web.Request) -> web.Response:
-    return web.json_response({"status": "ok"})
-
-
 def create_cron_app(
     routes: Sequence[RouteDef],
     *,
@@ -47,3 +43,7 @@ def attach_cron_site(
 
     app.on_startup.append(_start)
     app.on_cleanup.append(_stop)
+
+
+async def _health(_: web.Request) -> web.Response:
+    return web.json_response({"status": "ok"})

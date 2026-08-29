@@ -10,20 +10,6 @@ from aiogram_dialog.widgets.text import Text
 from bira_core.kbd import DEFAULT_ROW_CHARS, wrap_by_label_width
 
 
-async def _cancel_reset(
-    c: CallbackQuery, button: Button, manager: DialogManager
-) -> None:
-    await manager.done(show_mode=ShowMode.NO_UPDATE)
-    await manager.reset_stack(remove_keyboard=True)
-    if not isinstance(c.message, Message):
-        return
-    text = "✘ Все диалоги закрыты ✘\nГотов к обработке новых запросов"
-    if c.message.text:
-        await c.message.edit_text(text, reply_markup=None)
-    elif c.message.caption:
-        await c.message.edit_caption(caption=text, reply_markup=None)
-
-
 async def cancel_delete(
     c: CallbackQuery, button: Button, manager: DialogManager
 ) -> None:
@@ -79,3 +65,17 @@ class AdaptiveGroup(Group):
 
     def _wrap_kbd(self, kbd: list[Any]) -> list[list[Any]]:  # type: ignore[override]
         return wrap_by_label_width(kbd, self.max_row_chars)
+
+
+async def _cancel_reset(
+    c: CallbackQuery, button: Button, manager: DialogManager
+) -> None:
+    await manager.done(show_mode=ShowMode.NO_UPDATE)
+    await manager.reset_stack(remove_keyboard=True)
+    if not isinstance(c.message, Message):
+        return
+    text = "✘ Все диалоги закрыты ✘\nГотов к обработке новых запросов"
+    if c.message.text:
+        await c.message.edit_text(text, reply_markup=None)
+    elif c.message.caption:
+        await c.message.edit_caption(caption=text, reply_markup=None)

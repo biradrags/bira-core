@@ -5,15 +5,6 @@ from maxo.routing.updates import MessageCallback
 from bira_core.maxbot._errors import is_message_gone
 
 
-def _message_id_for_delete(
-    event: MessageCallback, manager: DialogManager
-) -> str | None:
-    if event.message is not None:
-        return event.message.body.mid
-    stack = manager.current_stack()
-    return stack.last_message_id if stack else None
-
-
 async def cancel_delete(
     event: MessageCallback,
     _button: Button,
@@ -29,3 +20,12 @@ async def cancel_delete(
         except Exception as err:
             if not is_message_gone(err):
                 raise
+
+
+def _message_id_for_delete(
+    event: MessageCallback, manager: DialogManager
+) -> str | None:
+    if event.message is not None:
+        return event.message.body.mid
+    stack = manager.current_stack()
+    return stack.last_message_id if stack else None

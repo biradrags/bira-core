@@ -11,6 +11,22 @@ __all__ = [
 ]
 
 
+def wrap_by_label_width(buttons: Sequence[Any], max_row_chars: int) -> list[list[Any]]:
+    rows: list[list[Any]] = []
+    row: list[Any] = []
+    row_len = 0
+    for button in buttons:
+        length = len(getattr(button, "text", "") or "")
+        if row and row_len + length > max_row_chars:
+            rows.append(row)
+            row, row_len = [], 0
+        row.append(button)
+        row_len += length
+    if row:
+        rows.append(row)
+    return rows
+
+
 def _wrap_indices(
     labels: Sequence[str], *, row_chars: int = DEFAULT_ROW_CHARS
 ) -> list[list[int]]:
@@ -23,22 +39,6 @@ def _wrap_indices(
             rows.append(row)
             row, row_len = [], 0
         row.append(idx)
-        row_len += length
-    if row:
-        rows.append(row)
-    return rows
-
-
-def wrap_by_label_width(buttons: Sequence[Any], max_row_chars: int) -> list[list[Any]]:
-    rows: list[list[Any]] = []
-    row: list[Any] = []
-    row_len = 0
-    for button in buttons:
-        length = len(getattr(button, "text", "") or "")
-        if row and row_len + length > max_row_chars:
-            rows.append(row)
-            row, row_len = [], 0
-        row.append(button)
         row_len += length
     if row:
         rows.append(row)

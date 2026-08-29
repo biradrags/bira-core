@@ -17,17 +17,6 @@ from bira_core.tgbot.dialogs.notifier import delete_if_exists
 logger = logging.getLogger(__name__)
 
 
-def _resolve_start_data(
-    data: Data,
-    callback_data: CallbackData | None,
-) -> Any:
-    if data is not None and callable(data):
-        return data(callback_data) if callback_data else data(None)
-    if data is not None:
-        return data
-    return callback_data.model_dump() if callback_data else None
-
-
 def register_start_handler(
     *filters: CallbackType,
     state: State,
@@ -121,3 +110,14 @@ def register_cancel_state(
     commands: str | Sequence[str] = "cancel",
 ) -> None:
     router.message.register(cancel_state, Command(commands=commands))
+
+
+def _resolve_start_data(
+    data: Data,
+    callback_data: CallbackData | None,
+) -> Any:
+    if data is not None and callable(data):
+        return data(callback_data) if callback_data else data(None)
+    if data is not None:
+        return data
+    return callback_data.model_dump() if callback_data else None

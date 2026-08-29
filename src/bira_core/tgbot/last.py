@@ -9,6 +9,13 @@ logger = logging.getLogger(__name__)
 __all__ = ["setup_last_router"]
 
 
+def setup_last_router(strategy: Literal["alert", "delete"]) -> Router:
+    router = Router(name="bira_core.last")
+    handler = _not_supported_alert if strategy == "alert" else _not_supported_delete
+    router.callback_query.register(handler)
+    return router
+
+
 async def _not_supported_alert(callback_query: types.CallbackQuery) -> None:
     await callback_query.answer(
         "Эта кнопка не поддерживается или не предназначена для Вас.",
@@ -39,10 +46,3 @@ async def _not_supported_delete(callback_query: types.CallbackQuery, bot: Bot) -
             ),
         },
     )
-
-
-def setup_last_router(strategy: Literal["alert", "delete"]) -> Router:
-    router = Router(name="bira_core.last")
-    handler = _not_supported_alert if strategy == "alert" else _not_supported_delete
-    router.callback_query.register(handler)
-    return router
