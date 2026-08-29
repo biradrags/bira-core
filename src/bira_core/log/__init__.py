@@ -16,19 +16,19 @@ __all__ = [
 
 
 def setup_logging(
-    level: int | str = "INFO",
+    level: int | str | None = None,
     *,
     extra_patterns: Sequence[str] = (),
     extra_silence: Sequence[str] = (),
 ) -> None:
-    if isinstance(level, str):
+    """Configure root logger; env LOG_LEVEL applies only when level is None."""
+    if level is None:
+        env = os.environ.get("LOG_LEVEL", "INFO")
+        numeric = logging.getLevelNamesMapping().get(env.upper(), logging.INFO)
+    elif isinstance(level, str):
         numeric = logging.getLevelNamesMapping().get(level.upper(), logging.INFO)
     else:
         numeric = level
-    if os.environ.get("LOG_LEVEL"):
-        numeric = logging.getLevelNamesMapping().get(
-            os.environ["LOG_LEVEL"].upper(), numeric
-        )
 
     handler = logging.StreamHandler()
     handler.setFormatter(LogfmtFormatter())
