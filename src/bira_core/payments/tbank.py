@@ -17,7 +17,7 @@ from tenacity import (
 
 
 def build_tbank_token(params: Mapping[str, Any], password: str) -> str:
-    """Build tbank token."""
+    """HMAC-SHA256 token over sorted T-Bank request fields plus password."""
     items: list[tuple[str, str]] = []
     for key, value in params.items():
         if key in ("Token", "DATA", "Receipt"):
@@ -36,18 +36,18 @@ def build_tbank_token(params: Mapping[str, Any], password: str) -> str:
 
 
 def verify_tbank_token(params: Mapping[str, Any], password: str) -> bool:
-    """Verify tbank token."""
+    """Constant-time compare of request Token with freshly built digest."""
     token = str(params.get("Token") or "")
     expected = build_tbank_token(params, password)
     return hmac.compare_digest(token.encode("utf-8"), expected.encode("utf-8"))
 
 
 class TBankNetworkError(Exception):
-    """T Bank Network Error."""
+    """Transient HTTP/timeout failure from T-Bank API."""
 
 
 class TBankClient:
-    """T Bank Client."""
+    """Async T-Bank REST client with one retry on network errors."""
 
     def __init__(
         self,
@@ -57,7 +57,7 @@ class TBankClient:
         api_base_url: str,
         session: aiohttp.ClientSession,
     ) -> None:
-        """Initialize instance."""
+        """Store terminal credentials and shared aiohttp session."""
         self._terminal_key = terminal_key
         self._password = password
         self._api_base_url = api_base_url.rstrip("/")
@@ -91,5 +91,5 @@ class TBankClient:
         return await self._post("/Init", payload)
 
     async def cancel(self, payload: dict[str, Any]) -> dict[str, Any]:
-        """Cancel."""
+        """POST /Cancel with signed payload."""
         return await self._post("/Cancel", payload)

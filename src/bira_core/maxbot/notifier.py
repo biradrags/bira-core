@@ -24,7 +24,7 @@ class MaxDialogNotifier:
     DEFAULT_TTL_SEC = 5.0
 
     def __init__(self, bot: Bot) -> None:
-        """Initialize instance."""
+        """Hold MaxBot used for send/delete/ack in dialogs."""
         self._bot = bot
         self._deleter = DelayedDeleter()
 
@@ -35,7 +35,7 @@ class MaxDialogNotifier:
         *,
         ttl: float = DEFAULT_TTL_SEC,
     ) -> None:
-        """Answer."""
+        """Send feedback and schedule TTL delete of the new message."""
         event = manager.event
         if not isinstance(event, MessageCreated):
             return
@@ -69,11 +69,11 @@ class MaxDialogNotifier:
         *,
         ttl: float = DEFAULT_TTL_SEC,
     ) -> None:
-        """Warn."""
+        """answer() with a warning prefix."""
         await self.answer(manager, f"⚠️ {text}", ttl=ttl)
 
     async def delete(self, chat_id: int, message_id: str) -> bool:
-        """Delete."""
+        """delete_message; False only for known «message gone» markers."""
         try:
             await self._bot.delete_message(message_id=message_id)
         except MaxBotBadRequestError as exc:
@@ -88,7 +88,7 @@ class MaxDialogNotifier:
             return True
 
     async def ack(self, callback: MessageCallback) -> bool:
-        """Ack."""
+        """callback_answer(); False only for «query is too old» class."""
         try:
             await callback.callback_answer()
         except MaxBotBadRequestError as exc:
@@ -104,5 +104,5 @@ class MaxDialogNotifier:
             return True
 
     async def shutdown(self) -> None:
-        """Shutdown."""
+        """Cancel pending TTL delete tasks."""
         await self._deleter.shutdown()

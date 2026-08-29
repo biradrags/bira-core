@@ -18,7 +18,7 @@ _Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
 
 
 def fly_src_gate(allowed: frozenset[str]) -> Middleware:
-    """Fly src gate."""
+    """Reject cron requests whose fly-src app is not in the allowlist."""
 
     @web.middleware
     async def middleware(request: web.Request, handler: _Handler) -> web.StreamResponse:
@@ -38,7 +38,7 @@ _locks: dict[str, asyncio.Lock] = {}
 
 
 def cron_protocol() -> Middleware:
-    """Cron protocol."""
+    """Serialize concurrent runs per job name; always return JSON status."""
 
     @web.middleware
     async def middleware(request: web.Request, handler: _Handler) -> web.StreamResponse:

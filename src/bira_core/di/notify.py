@@ -7,9 +7,9 @@ from bira_core.notify.send import MessageSender
 
 
 class NotifierProvider(Provider):
-    """Notifier Provider."""
+    """Wire MessageSender and owner chat into Alerts."""
 
     @provide
     def alerts(self, sender: MessageSender, owner_chat_id: int) -> Alerts:
-        """Alerts."""
+        """Build Alerts bound to the ops owner chat."""
         return Alerts(sender, owner_chat_id)

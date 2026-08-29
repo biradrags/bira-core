@@ -7,17 +7,17 @@ from collections.abc import Callable
 
 
 class TokenBucket:
-    """Token Bucket."""
+    """Per-key token bucket with refill rate and capacity."""
 
     def __init__(self, capacity: float, refill_per_sec: float) -> None:
-        """Initialize instance."""
+        """Set bucket capacity and tokens-per-second refill."""
         self._capacity = float(capacity)
         self._refill_per_sec = float(refill_per_sec)
         self._tokens = float(capacity)
         self._last = 0.0
 
     def try_consume(self, now: float, amount: float = 1.0) -> bool:
-        """Try consume."""
+        """Consume tokens if available; refill since last call."""
         elapsed = now - self._last
         if elapsed > 0:
             self._tokens = min(
@@ -45,7 +45,7 @@ class _PerKeyLimiter:
 
 
 class FloodGuard:
-    """Flood Guard."""
+    """L1 ingress limiter: per-key plus global token buckets."""
 
     def __init__(
         self,
@@ -56,13 +56,13 @@ class FloodGuard:
         global_burst: int,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
-        """Initialize instance."""
+        """Configure per-key and global rate/burst limits."""
         self._per_key = _PerKeyLimiter(per_key_burst, per_key_rate)
         self._global = TokenBucket(global_burst, global_rate)
         self._clock = clock
 
     def allow(self, key: str) -> bool:
-        """Allow."""
+        """Allow when both per-key and global buckets have tokens."""
         now = self._clock()
         if not self._per_key.allow(key, now):
             return False

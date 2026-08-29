@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class Alerts:
-    """Alerts."""
+    """Deduped owner Telegram alerts with optional urgent mention."""
 
     def __init__(
         self,
@@ -24,7 +24,7 @@ class Alerts:
         urgent_mention: str = "",
         now: Callable[[], float] = time.monotonic,
     ) -> None:
-        """Initialize instance."""
+        """Bind sender, owner chat, dedupe window, and urgent mention."""
         self._sender = sender
         self._owner_chat_id = owner_chat_id
         self._window_s = window_s
@@ -39,7 +39,7 @@ class Alerts:
         *,
         urgent: bool = False,
     ) -> None:
-        """Alert."""
+        """Log and DM owner; suppress repeats of the same kind within window."""
         now = self._now()
         last = self._last.get(kind)
         if last is not None and now - last < self._window_s:

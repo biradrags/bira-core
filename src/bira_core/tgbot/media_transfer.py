@@ -27,7 +27,7 @@ __all__ = [
 
 
 def extract_content(message: Message) -> str | None:
-    """Extract content."""
+    """Plain-text or bracketed placeholder for non-text Message types."""
     if message.text:
         return message.text
     if message.sticker:
@@ -62,7 +62,7 @@ def extract_content(message: Message) -> str | None:
 
 @dataclass
 class TransferResult:
-    """Transfer Result."""
+    """Outcome of transfer_message: sent, skipped, or error details."""
 
     sent: Message | None = None
     skipped: bool = False
@@ -77,7 +77,7 @@ async def download_file_for_transfer(
     file_size: int | None,
     filename: str | None = None,
 ) -> AsyncIterator[Path | None]:
-    """Download file for transfer."""
+    """Yield local Path after download; None when file too large or failed."""
     if file_size is None or file_size > MAX_FILE_SIZE:
         yield None
         return
@@ -119,7 +119,7 @@ async def transfer_message(
     dst_thread_id: int | None = None,
     business_connection_id: str | None = None,
 ) -> TransferResult:
-    """Transfer message."""
+    """Copy supported Message content from src_bot chat to dst_bot chat."""
     try:
         if src_message.contact:
             return TransferResult(skipped=True)
@@ -281,7 +281,7 @@ async def transfer_message(
 
 
 def get_media_label(message: Message) -> str:
-    """Return Media label."""
+    """Human-readable media type label for logging and UI."""
     if message.contact:
         c = message.contact
         name = " ".join(filter(None, [c.first_name, c.last_name]))

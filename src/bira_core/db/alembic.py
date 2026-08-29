@@ -23,7 +23,7 @@ def resolve_ddl_url(
     name: str,
     env_override: str = "DATABASE_URL",
 ) -> str:
-    """Resolve ddl url."""
+    """DATABASE_URL override or DDL-role DSN with password guard."""
     override = os.environ.get(env_override)
     if override:
         return override
@@ -54,7 +54,7 @@ def _connect_args_for_host(host: str) -> dict[str, object]:
 
 
 def run_migrations(config: Any, target_metadata: MetaData, *, host: str = "") -> None:
-    """Run migrations."""
+    """Run Alembic offline or online against target_metadata."""
     from alembic import context
 
     _connect_args = _connect_args_for_host(host)

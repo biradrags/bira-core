@@ -4,7 +4,7 @@ from aiogram import Dispatcher, Router
 
 
 def print_router_tree(router: Router, indent: int = 0) -> str:
-    """Print router tree."""
+    """Return indented router/sub-router names for debugging nested trees."""
     if isinstance(router, Dispatcher):
         result = " " * indent + "dispatcher"
     else:

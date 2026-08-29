@@ -21,12 +21,12 @@ _MAX_FLOOD_WAIT_SLEEP = 30
 
 @runtime_checkable
 class MessageSender(Protocol):
-    """Message Sender."""
+    """Anything that can send_message(chat_id, text) for Alerts wiring."""
 
     async def send_message(
         self, chat_id: int, text: str, **kwargs: Any
     ) -> Message | None:
-        """Send message."""
+        """Deliver text to chat_id; return Message or None."""
         ...
 
 
@@ -40,7 +40,7 @@ async def safe_send(
     message_thread_id: int | None = None,
     **kwargs: Any,
 ) -> Message | None:
-    """Safe send."""
+    """Send and return Message; None only after classified failure."""
     result = await deliver(
         bot,
         chat_id,
@@ -63,7 +63,7 @@ async def deliver(
     message_thread_id: int | None = None,
     **kwargs: Any,
 ) -> DeliveryResult:
-    """Deliver."""
+    """Classify errors and retry once on TelegramRetryAfter."""
 
     async def _attempt() -> Message:
         if photo:

@@ -10,29 +10,29 @@ from dishka import Provider, Scope, provide
 
 
 class MockBotProvider(Provider):
-    """Mock Bot Provider."""
+    """Dishka providers returning mocked Bot/session for unit tests."""
 
     scope = Scope.APP
 
     @provide
     async def get_bot_session(self) -> BaseSession:
-        """Return Bot session."""
+        """AsyncMock BaseSession for isolated Bot construction."""
         return mock.AsyncMock(BaseSession)
 
     @provide
     async def get_bot(self, session: BaseSession) -> Bot:
-        """Return Bot."""
+        """Bot with synthetic token wired to the mock session."""
         return Bot(token="42:FAKE_TOKEN_FOR_TESTS_ONLY", session=session)
 
 
 class MockMessageManagerProvider(Provider):
-    """Mock Message Manager Provider."""
+    """Dishka provider for aiogram_dialog MockMessageManager."""
 
     scope = Scope.APP
 
     @provide
     def get_manager(self) -> Any:
-        """Return Manager."""
+        """Lazy-import aiogram_dialog.test_tools.MockMessageManager."""
         try:
             mod = importlib.import_module("aiogram_dialog.test_tools")
         except ImportError as e:
@@ -48,13 +48,13 @@ except ImportError:  # pragma: no cover - optional [max] extra
 
 
 class MockMaxMessageManagerProvider(Provider):
-    """Mock Max Message Manager Provider."""
+    """Dishka provider for maxo.dialogs MockMessageManager."""
 
     scope = Scope.APP
 
     @provide
     def get_max_message_manager(self) -> Any:
-        """Return Max message manager."""
+        """Lazy-import maxo.dialogs.test_tools.MockMessageManager."""
         try:
             mod = importlib.import_module("maxo.dialogs.test_tools")
         except ImportError as e:
@@ -64,13 +64,13 @@ class MockMaxMessageManagerProvider(Provider):
 
 
 class MockMaxDpProvider(Provider):
-    """Mock Max Dp Provider."""
+    """Dishka provider building a test MaxDispatcher with in-memory storage."""
 
     scope = Scope.APP
 
     @provide
     def get_json_storage(self) -> Any:
-        """Return Json storage."""
+        """JsonMemoryStorage from maxo.dialogs test tools."""
         mod = importlib.import_module("maxo.dialogs.test_tools.memory_storage")
         return mod.JsonMemoryStorage()
 
@@ -80,7 +80,7 @@ class MockMaxDpProvider(Provider):
         storage: Any,
         max_mm: Any,
     ) -> MaxDispatcher:
-        """Create max dispatcher."""
+        """Dispatcher with DefaultKeyBuilder and injected message_manager."""
         maxo_mod = importlib.import_module("maxo")
         key_builder_mod = importlib.import_module("maxo.fsm.key_builder")
 

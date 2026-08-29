@@ -15,7 +15,7 @@ from bira_core.kbd import DEFAULT_ROW_CHARS, wrap_by_label_width
 async def cancel_delete(
     c: CallbackQuery, button: Button, manager: DialogManager
 ) -> None:
-    """Cancel delete."""
+    """Finish dialog, reset stack, and delete the callback message."""
     await manager.done(show_mode=ShowMode.NO_UPDATE)
     await manager.reset_stack(remove_keyboard=True)
     if not isinstance(c.message, Message):
@@ -31,7 +31,7 @@ async def cancel_delete(
 
 
 class ProgressSteps(Text):
-    """Progress Steps."""
+    """Render filled/empty step indicators for multi-step dialogs."""
 
     def __init__(
         self,
@@ -41,7 +41,7 @@ class ProgressSteps(Text):
         empty: str = "⬜",
         when: Any = None,
     ) -> None:
-        """Initialize instance."""
+        """Store step count, current index, and filled/empty glyphs."""
         super().__init__(when)
         self.steps = steps
         self.current_step = current_step
@@ -59,7 +59,7 @@ class ProgressSteps(Text):
 
 
 class AdaptiveGroup(Group):
-    """Adaptive Group."""
+    """Keyboard Group that wraps buttons via wrap_by_label_width."""
 
     def __init__(
         self,
@@ -68,7 +68,7 @@ class AdaptiveGroup(Group):
         id: str | None = None,
         when: Any = None,
     ) -> None:
-        """Initialize instance."""
+        """Remember max_row_chars for label-width wrapping."""
         super().__init__(*buttons, id=id, width=1, when=when)
         self.max_row_chars = max_row_chars
 

@@ -6,7 +6,7 @@ from typing import Any
 
 
 class FailureCategory(Enum):
-    """Failure Category."""
+    """Delivery outcome buckets for bulk send and metrics."""
 
     BLOCKED = "blocked"
     FLOOD_WAIT = "flood_wait"
@@ -16,7 +16,7 @@ class FailureCategory(Enum):
 
 @dataclass(frozen=True, slots=True)
 class DeliveryFailure:
-    """Delivery Failure."""
+    """Structured send failure with category and optional retry_after."""
 
     category: FailureCategory
     raw: str
@@ -25,7 +25,7 @@ class DeliveryFailure:
 
 @dataclass(slots=True)
 class DeliveryResult:
-    """Delivery Result."""
+    """Either sent payload or classified failure, never both."""
 
     sent: Any | None = None
     failure: DeliveryFailure | None = None

@@ -41,7 +41,7 @@ def _is_topic_gone(exc: BaseException) -> bool:
 
 
 class ForumTopics:
-    """Forum Topics."""
+    """Ensure forum topics per logical key and resend after topic deletion."""
 
     def __init__(
         self,
@@ -51,7 +51,7 @@ class ForumTopics:
         *,
         call_timeout: float = 15,
     ) -> None:
-        """Initialize instance."""
+        """Wire bot, forum chat, and DAO-backed thread store."""
         self._bot = bot
         self._forum_chat_id = forum_chat_id
         self._store = store

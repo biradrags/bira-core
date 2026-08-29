@@ -7,7 +7,7 @@ from dishka import AsyncContainer
 
 
 async def warm_up(container: AsyncContainer, types: Sequence[type[Any]]) -> None:
-    """Warm up."""
+    """Eager-resolve listed types once to warm Dishka providers."""
     async with container() as request:
         for dep in types:
             await request.get(dep)

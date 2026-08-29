@@ -17,7 +17,7 @@ def idempotent_transition(
     from_status: Any,
     to_status: Any,
 ) -> Update:
-    """Idempotent transition."""
+    """UPDATE that succeeds only when status_attr still equals from_status."""
     return (
         update(model)
         .where(model.id == row_id, status_attr == from_status)
@@ -34,7 +34,7 @@ def claim_due(
     limit: int,
     set_values: Mapping[str, Any],
 ) -> Update:
-    """Claim due."""
+    """Lock and mark up to limit rows with due_attr < now."""
     due = (
         select(model.id)
         .where(due_attr < now)

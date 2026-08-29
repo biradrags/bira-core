@@ -25,7 +25,7 @@ __all__ = [
 
 
 async def chat_id_command(message: Message) -> None:
-    """Chat id command."""
+    """Reply with chat/thread/user ids for superuser debugging."""
     text = f"🆔 ID этого чата: {hd.pre(str(message.chat.id))}"
     if message.message_thread_id:
         text += f"\n📝 ID этой подтемы: {hd.pre(str(message.message_thread_id))}"
@@ -42,7 +42,7 @@ async def chat_id_command(message: Message) -> None:
 
 
 async def cancel_command(message: Message, state: FSMContext) -> None:
-    """Cancel command."""
+    """Clear FSM and remove reply keyboard when a dialog is active."""
     current_state = await state.get_state()
     if current_state is None:
         return
@@ -55,7 +55,7 @@ async def cancel_command(message: Message, state: FSMContext) -> None:
 
 
 async def register_debug_commands(bot: Bot, superusers: list[int]) -> None:
-    """Register Debug commands."""
+    """Register /chat_id and /cancel in each superuser private chat."""
     from aiogram.exceptions import TelegramBadRequest
     from aiogram.types import BotCommandScopeChat
 

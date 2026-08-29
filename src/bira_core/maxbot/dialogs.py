@@ -12,7 +12,7 @@ async def cancel_delete(
     _button: Button,
     manager: DialogManager,
 ) -> None:
-    """Cancel delete."""
+    """End dialog, reset stack, and delete the triggering message."""
     message_id = _message_id_for_delete(event, manager)
     bot = manager.middleware_data["bot"]
     await manager.done(show_mode=ShowMode.NO_UPDATE)

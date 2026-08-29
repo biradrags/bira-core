@@ -11,10 +11,10 @@ _MAX_VAL = 120
 
 
 class LogfmtFormatter(logging.Formatter):
-    """Logfmt Formatter."""
+    """One-line logfmt with redacted msg/exc/stack fields."""
 
     def format(self, record: logging.LogRecord) -> str:
-        """Format."""
+        """Serialize level, logger, msg, extras, and exception text."""
         parts = [
             f"level={record.levelname}",
             f"logger={record.name}",
@@ -39,12 +39,12 @@ class LogfmtFormatter(logging.Formatter):
 
 
 class ProbeAccessFilter(logging.Filter):
-    """Probe Access Filter."""
+    """Drop aiohttp access lines for /health and /webhook probes."""
 
     _SKIP = ("/health", "/webhook")
 
     def filter(self, record: logging.LogRecord) -> bool:
-        """Filter."""
+        """False for health/webhook paths to keep access logs quiet."""
         msg = record.getMessage()
         return not any(path in msg for path in self._SKIP)
 

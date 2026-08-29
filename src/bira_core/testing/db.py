@@ -21,7 +21,7 @@ def xdist_locked_migrations(
     request: pytest.FixtureRequest,
     run_migrations: Callable[[], None],
 ) -> None:
-    """Xdist locked migrations."""
+    """Run Alembic once per xdist group using a file lock."""
     if not hasattr(request.config, "workerinput"):
         run_migrations()
         return
@@ -45,7 +45,7 @@ def xdist_locked_migrations(
 
 @asynccontextmanager
 async def rollback_session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
-    """Rollback session."""
+    """Yield AsyncSession that always rolls back on exit."""
     session_factory = async_sessionmaker(
         engine,
         class_=AsyncSession,
@@ -61,7 +61,7 @@ async def rollback_session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
 
 @asynccontextmanager
 async def savepoint_session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
-    """Savepoint session."""
+    """Yield session inside a connection savepoint rolled back on exit."""
     async with engine.connect() as conn:
         trans = await conn.begin()
         async with AsyncSession(
@@ -79,7 +79,7 @@ async def savepoint_session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
 async def savepoint_session_from_connection(
     connection: AsyncConnection,
 ) -> AsyncIterator[AsyncSession]:
-    """Savepoint session from connection."""
+    """Savepoint session bound to an existing AsyncConnection."""
     async with AsyncSession(
         bind=connection,
         expire_on_commit=False,
@@ -91,7 +91,7 @@ async def savepoint_session_from_connection(
 def rollback_session_fixture(
     engine: AsyncEngine,
 ) -> Callable[[], AsyncIterator[AsyncSession]]:
-    """Rollback session fixture."""
+    """pytest fixture factory wrapping rollback_session."""
 
     @pytest.fixture
     async def _session() -> AsyncIterator[AsyncSession]:
@@ -104,7 +104,7 @@ def rollback_session_fixture(
 def savepoint_session_fixture(
     engine: AsyncEngine,
 ) -> Callable[[], AsyncIterator[AsyncSession]]:
-    """Savepoint session fixture."""
+    """pytest fixture factory wrapping savepoint_session."""
 
     @pytest.fixture
     async def _session() -> AsyncIterator[AsyncSession]:

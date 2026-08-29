@@ -13,7 +13,7 @@ __all__ = ["register_error_handlers"]
 
 
 def register_error_handlers(router: Router, *, alerts: Alerts | None = None) -> None:
-    """Register Error handlers."""
+    """Log unhandled updates and optionally notify via Alerts."""
 
     async def handler(error: ErrorEvent) -> None:
         await _handle_error(error, alerts=alerts)

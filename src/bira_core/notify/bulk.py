@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass(slots=True)
 class BulkReport:
-    """Bulk Report."""
+    """Aggregated counters and per-chat failures from send_bulk."""
 
     sent: int = 0
     failed: int = 0
@@ -28,7 +28,7 @@ async def send_bulk(
     concurrency: int = 1,
     delay: float = 0.05,
 ) -> BulkReport:
-    """Send bulk."""
+    """Send to many chats with bounded concurrency and flood-wait backoff."""
     report = BulkReport()
     sem = asyncio.Semaphore(max(1, concurrency))
 

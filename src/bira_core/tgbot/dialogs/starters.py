@@ -27,7 +27,7 @@ def register_start_handler(
     show_mode: ShowMode = ShowMode.AUTO,
     data: Data = None,
 ) -> None:
-    """Register Start handler."""
+    """Wire message filters to dialog_manager.start for a State."""
 
     async def start_dialog(
         message: Message,
@@ -49,7 +49,7 @@ def register_callback_starter(
     show_mode: ShowMode = ShowMode.AUTO,
     data: Data = None,
 ) -> None:
-    """Register Callback starter."""
+    """Start dialog from callback via BgManagerFactory with data passthrough."""
 
     async def start_dialog(
         callback: CallbackQuery,
@@ -87,7 +87,7 @@ def register_business_handler(
     data: Data = None,
     delete_on_start: bool = False,
 ) -> None:
-    """Register Business handler."""
+    """Start dialog from business_message; optionally delete trigger first."""
 
     async def start_dialog(
         message: Message,
@@ -108,7 +108,7 @@ async def cancel_state(
     state: FSMContext,
     dialog_manager: DialogManager,
 ) -> None:
-    """Cancel state."""
+    """Reset dialog stack then run shared cancel_command."""
     await dialog_manager.reset_stack(remove_keyboard=True)
     await cancel_command(message, state)
 
@@ -118,7 +118,7 @@ def register_cancel_state(
     *,
     commands: str | Sequence[str] = "cancel",
 ) -> None:
-    """Register Cancel state."""
+    """Register /cancel (or custom commands) to reset dialog stack."""
     router.message.register(cancel_state, Command(commands=commands))
 
 

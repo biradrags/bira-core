@@ -11,21 +11,21 @@ from maxo.integrations.dishka import CONTAINER_NAME, setup_dishka
 
 
 class MaxToken(Protocol):
-    """Max Token."""
+    """SecretStr-like token for MaxBotProvider injection."""
 
     def get_secret_value(self) -> str:
-        """Return Secret value."""
+        """Expose bot token without logging the raw secret."""
         ...
 
 
 class MaxBotProvider(Provider):
-    """Max Bot Provider."""
+    """Dishka provider for a single warming_up=False MaxBot."""
 
     scope = Scope.APP
 
     @provide
     def provide_max_bot(self, token: MaxToken) -> MaxBot:
-        """Provide max bot."""
+        """Build MaxBot from injected MaxToken."""
         return MaxBot(token=token.get_secret_value(), warming_up=False)
 
 
@@ -35,7 +35,7 @@ def create_max_dispatcher(
     setup_handlers: Callable[[MaxDispatcher], None] | None = None,
     setup_middlewares: Callable[[MaxDispatcher], None] | None = None,
 ) -> MaxDispatcher:
-    """Create max dispatcher."""
+    """MaxDispatcher with Dishka, optional middlewares and handlers."""
     key_builder = DefaultKeyBuilder(with_destiny=True)
     dp = MaxDispatcher(key_builder=key_builder)
     setup_dishka(container=container, dispatcher=dp, auto_inject=True)

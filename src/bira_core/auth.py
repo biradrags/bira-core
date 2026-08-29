@@ -6,5 +6,5 @@ __all__ = ["is_superadmin"]
 
 
 def is_superadmin(user_id: int, superusers: Collection[int]) -> bool:
-    """Check Superadmin."""
+    """True when user_id is in the configured superuser set."""
     return user_id in superusers

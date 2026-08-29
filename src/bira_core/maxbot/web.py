@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 async def drop_webhook_subscriptions(bot: Bot) -> None:
-    """Drop webhook subscriptions."""
+    """Unsubscribe all MAX webhooks before switching to long polling."""
     if not bot.state.started:
         await bot.start()
     result = await bot.get_subscriptions()

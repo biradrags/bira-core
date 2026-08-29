@@ -14,19 +14,19 @@ __all__ = ["IsServiceChat", "IsSuperAdmin", "is_superadmin"]
 
 
 def is_superadmin(user_id: int, superusers: Collection[int]) -> bool:
-    """Check Superadmin."""
+    """Re-export auth.is_superadmin for TG filter call sites."""
     return _is_superadmin(user_id, superusers)
 
 
 class IsSuperAdmin(BaseFilter):
-    """Is Super Admin."""
+    """Pass updates from users listed in superusers."""
 
     def __init__(self, *, superusers: Collection[int]) -> None:
-        """Initialize instance."""
+        """Remember fleet superuser ids to check on each message."""
         self._superusers = superusers
 
     async def __call__(self, message: Message) -> bool:
-        """Call."""
+        """True when message.from_user is in superusers."""
         if message.from_user is None:
             return False
         result = _is_superadmin(message.from_user.id, self._superusers)
@@ -35,14 +35,14 @@ class IsSuperAdmin(BaseFilter):
 
 
 class IsServiceChat(BaseFilter):
-    """Is Service Chat."""
+    """Pass updates only from the configured service chat."""
 
     def __init__(self, service_chat_id: int) -> None:
-        """Initialize instance."""
+        """Remember the ops/service chat id to match against."""
         self._service_chat_id = service_chat_id
 
     async def __call__(self, message: Message) -> bool:
-        """Call."""
+        """True when message.chat.id equals service_chat_id."""
         result = int(message.chat.id) == int(self._service_chat_id)
         logger.debug(
             "IsServiceChat", extra={"chat_id": message.chat.id, "result": result}

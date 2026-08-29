@@ -14,7 +14,7 @@ __all__ = [
 
 
 def wrap_by_label_width(buttons: Sequence[Any], max_row_chars: int) -> list[list[Any]]:
-    """Wrap by label width."""
+    """Group flat buttons into rows by cumulative label width."""
     rows: list[list[Any]] = []
     row: list[Any] = []
     row_len = 0

@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 async def clear_stale_intent(error: ErrorEvent) -> None:
-    """Clear stale intent."""
+    """Answer callback, delete stale message, or strip markup as fallback."""
     callback = error.update.callback_query
     if callback is None:
         return

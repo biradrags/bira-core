@@ -11,20 +11,20 @@ from bira_core.auth import is_superadmin as _is_superadmin
 
 
 class MaxUser(Protocol):
-    """Max User."""
+    """Minimal user shape stored in MAX routing ctx."""
 
     user_id: int
 
 
 class IsSuperAdmin(BaseFilter[BaseUpdate]):
-    """Is Super Admin."""
+    """Pass updates when ctx user_id is in superusers."""
 
     def __init__(self, *, superusers: Collection[int]) -> None:
-        """Initialize instance."""
+        """Remember fleet superuser ids from routing ctx."""
         self._superusers = superusers
 
     async def __call__(self, update: BaseUpdate, ctx: Ctx) -> bool:
-        """Call."""
+        """True when ctx carries a user in superusers."""
         user: MaxUser | None = ctx.get("user")
         if user is None:
             return False

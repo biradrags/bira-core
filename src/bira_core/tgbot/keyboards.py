@@ -14,15 +14,15 @@ __all__ = [
 
 
 class ToMainMenuCD(CallbackData, prefix="to_main_menu"):
-    """To Main Menu C D."""
+    """CallbackData to return user to the main menu."""
 
 
 class CancelResetCD(CallbackData, prefix="cancel_reset"):
-    """Cancel Reset C D."""
+    """CallbackData to cancel and reset the current dialog."""
 
 
 def build_cancel_back_keyboard() -> InlineKeyboardMarkup:
-    """Build cancel back keyboard."""
+    """Back and cancel inline buttons for nested dialog steps."""
     builder = InlineKeyboardBuilder()
     builder.button(text="🔙 Назад", callback_data=ToMainMenuCD())
     builder.button(text="✖️ Отмена", callback_data=CancelResetCD())
@@ -30,7 +30,7 @@ def build_cancel_back_keyboard() -> InlineKeyboardMarkup:
 
 
 def build_tbank_payment_keyboard(payment_url: str) -> InlineKeyboardMarkup:
-    """Build tbank payment keyboard."""
+    """Single URL button opening the T-Bank payment page."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="💳 Оплатить картой (T‑Bank)", url=payment_url)],
@@ -41,7 +41,7 @@ def build_tbank_payment_keyboard(payment_url: str) -> InlineKeyboardMarkup:
 def single_button_keyboard(
     text: str, callback_data: CallbackData
 ) -> InlineKeyboardMarkup:
-    """Single button keyboard."""
+    """One-row inline keyboard from text and CallbackData."""
     builder = InlineKeyboardBuilder()
     builder.button(text=text, callback_data=callback_data)
     return builder.as_markup()

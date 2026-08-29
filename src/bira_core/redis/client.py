@@ -22,7 +22,7 @@ _RECONNECT_ERRORS: tuple[type[BaseException], ...] = (
 
 
 def redis_connection_kwargs(*, decode_responses: bool = True) -> dict[str, Any]:
-    """Redis connection kwargs."""
+    """Default kwargs for redis.from_url (keepalive, retry, decode)."""
     return {
         "decode_responses": decode_responses,
         "socket_keepalive": True,
@@ -37,7 +37,7 @@ def redis_connection_kwargs(*, decode_responses: bool = True) -> dict[str, Any]:
 
 
 def make_redis_client(url: str, *, decode_responses: bool = True) -> redis.Redis:
-    """Build Redis client."""
+    """from_url client with fleet reconnect and decode_responses default."""
     return redis.from_url(
         url,
         **redis_connection_kwargs(decode_responses=decode_responses),

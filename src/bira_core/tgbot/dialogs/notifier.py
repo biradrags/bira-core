@@ -25,7 +25,7 @@ _QUERY_TOO_OLD_MARKERS = (
 
 
 async def delete_if_exists(bot: Bot, chat_id: int, message_id: int) -> bool:
-    """Delete if exists."""
+    """Delete message; return False only for known «already gone» markers."""
     try:
         await bot.delete_message(chat_id=chat_id, message_id=message_id)
     except TelegramBadRequest as exc:
@@ -43,7 +43,7 @@ class TgDialogNotifier:
     DEFAULT_TTL_SEC = 5.0
 
     def __init__(self, bot: Bot | None = None) -> None:
-        """Initialize instance."""
+        """Optional default bot for delete/ack outside DialogManager events."""
         self._bot = bot
         self._deleter = DelayedDeleter()
 
@@ -54,7 +54,7 @@ class TgDialogNotifier:
         *,
         ttl: float = DEFAULT_TTL_SEC,
     ) -> None:
-        """Answer."""
+        """Edit-reply with text and schedule TTL delete of the feedback."""
         event = manager.event
         if not isinstance(event, Message):
             return
@@ -75,18 +75,18 @@ class TgDialogNotifier:
         *,
         ttl: float = DEFAULT_TTL_SEC,
     ) -> None:
-        """Warn."""
+        """answer() with a warning prefix."""
         await self.answer(manager, f"⚠️ {text}", ttl=ttl)
 
     async def delete(self, chat_id: int, message_id: int) -> bool:
-        """Delete."""
+        """delete_if_exists via configured bot; False when bot missing."""
         bot = self._bot
         if bot is None:
             return False
         return await delete_if_exists(bot, chat_id, message_id)
 
     async def ack(self, callback: CallbackQuery) -> bool:
-        """Ack."""
+        """callback.answer(); False only for «query is too old» class."""
         try:
             await callback.answer()
         except TelegramBadRequest as exc:
@@ -102,5 +102,5 @@ class TgDialogNotifier:
             return True
 
     async def shutdown(self) -> None:
-        """Shutdown."""
+        """Cancel pending TTL delete tasks."""
         await self._deleter.shutdown()

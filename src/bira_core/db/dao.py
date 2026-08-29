@@ -12,10 +12,10 @@ Model_co = TypeVar("Model_co", bound=DeclarativeBase, covariant=True)
 
 
 class BaseDAO[Model_co]:
-    """Base D A O."""
+    """Shared async DAO bound to one SQLAlchemy model and session."""
 
     def __init__(self, model: type[Model_co], session: AsyncSession) -> None:
-        """Initialize instance."""
+        """Remember ORM model class and request-scoped session."""
         self.model = model
         self.session = session
 

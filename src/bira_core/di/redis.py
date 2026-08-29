@@ -9,13 +9,13 @@ from bira_core.redis import make_redis_client
 
 
 class RedisProvider(Provider):
-    """Redis Provider."""
+    """Dishka APP-scoped Redis client from redis_url."""
 
     scope = Scope.APP
 
     @provide
     async def redis(self, redis_url: str) -> AsyncIterable[Redis]:
-        """Redis."""
+        """Yield connected client; aclose on shutdown."""
         client = make_redis_client(redis_url)
         yield client
         await client.aclose()

@@ -4,7 +4,7 @@ from pydantic import BaseModel, SecretStr
 
 
 class DbTenantSettings(BaseModel):
-    """Db Tenant Settings."""
+    """Per-tenant Postgres roles and secrets for DML/DDL."""
 
     db_host: str
     db_port: int

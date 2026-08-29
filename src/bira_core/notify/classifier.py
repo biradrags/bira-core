@@ -21,7 +21,7 @@ _NOT_FOUND_BAD_REQUEST_MARKERS: tuple[str, ...] = (
 
 
 def classify_aiogram(exc: BaseException) -> DeliveryFailure:
-    """Classify aiogram."""
+    """Map aiogram send errors to FailureCategory for bulk reporting."""
     raw = str(exc)
     if isinstance(exc, TelegramForbiddenError):
         return DeliveryFailure(category=FailureCategory.BLOCKED, raw=raw)
