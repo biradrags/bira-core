@@ -15,6 +15,14 @@ logger = logging.getLogger(__name__)
 
 MAX_FILE_SIZE = 20 * 1024 * 1024
 
+__all__ = [
+    "TransferResult",
+    "download_file_for_transfer",
+    "extract_content",
+    "get_media_label",
+    "transfer_message",
+]
+
 
 def extract_content(message: Message) -> str | None:
     if message.text:

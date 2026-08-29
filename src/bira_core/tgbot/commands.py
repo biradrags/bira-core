@@ -13,6 +13,14 @@ CHAT_ID_COMMAND = BotCommand(
     command="chat_id", description="узнать chat_id данного чата"
 )
 
+__all__ = [
+    "CANCEL_COMMAND",
+    "CHAT_ID_COMMAND",
+    "cancel_command",
+    "chat_id_command",
+    "register_debug_commands",
+]
+
 
 async def chat_id_command(message: Message) -> None:
     text = f"🆔 ID этого чата: {hd.pre(str(message.chat.id))}"

@@ -6,6 +6,8 @@ from aiogram.types import Message
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["IsServiceChat", "IsSuperAdmin", "is_superadmin"]
+
 
 def is_superadmin(user_id: int, superusers: Collection[int]) -> bool:
     return user_id in superusers

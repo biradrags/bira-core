@@ -6,6 +6,8 @@ from aiogram import Bot, Router, types
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["setup_last_router"]
+
 
 async def _not_supported_alert(callback_query: types.CallbackQuery) -> None:
     await callback_query.answer(

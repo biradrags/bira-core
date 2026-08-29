@@ -7,6 +7,8 @@ from bira_core.notify import Alerts
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["register_error_handlers"]
+
 
 async def _handle_error(error: ErrorEvent, *, alerts: Alerts | None = None) -> None:
     logger.error(
