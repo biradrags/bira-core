@@ -39,7 +39,9 @@ class LogfmtFormatter(logging.Formatter):
             for key, value in record.__dict__.items()
             if key not in RECORD_ATTRS and not key.startswith("_")
         ]
-        if record.exc_info:
+        if record.exc_text:
+            parts.append(f"exc={_fmt_val(record.exc_text, limit=None)}")
+        elif record.exc_info:
             parts.append(
                 f"exc={_fmt_val(self.formatException(record.exc_info), limit=None)}"
             )

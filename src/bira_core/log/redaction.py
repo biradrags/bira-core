@@ -73,7 +73,7 @@ def redact_string(s: str) -> str:
 
 
 def _is_sensitive_key(key: str) -> bool:
-    k = key.lower()
+    k = re.sub(r"(?<!^)(?=[A-Z])", "_", key).lower()
     return k in SENSITIVE_KEY_NAMES or k.endswith(SENSITIVE_KEY_SUFFIXES)
 
 
@@ -185,6 +185,8 @@ def redact(obj: Any) -> Any:
         return result
     if isinstance(obj, list):
         return [redact(x) for x in obj]
+    if isinstance(obj, str):
+        return redact_string(obj)
     return obj
 
 
@@ -226,6 +228,16 @@ class RedactionFilter(logging.Filter):
             }
             if extra:
                 record.__dict__.update(redact_extra(extra))
+            if record.exc_info:
+                record.exc_text = redact_log_message(
+                    logging.Formatter().formatException(record.exc_info),
+                    extra_patterns=self._extra_patterns,
+                )
+            if record.stack_info:
+                record.stack_info = redact_log_message(
+                    record.stack_info,
+                    extra_patterns=self._extra_patterns,
+                )
         except (TypeError, ValueError, AttributeError) as e:
             logger = logging.getLogger(__name__)
             logger.debug("redaction filter skipped record", extra={"err": str(e)})

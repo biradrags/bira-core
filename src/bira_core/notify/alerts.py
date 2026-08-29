@@ -4,6 +4,7 @@ import logging
 import time
 from collections.abc import Callable
 
+from bira_core.log.redaction import redact_log_message
 from bira_core.notify.send import MessageSender
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ class Alerts:
         log = logger.error if urgent else logger.info
         log("alert %s", kind, extra={"text": text[:500]})
         try:
-            body = f"[{kind}] {text}"[:4000]
+            body = redact_log_message(f"[{kind}] {text}"[:4000])
             if urgent and self._urgent_mention:
                 body = f"{body} {self._urgent_mention}"
             await self._sender.send_message(self._owner_chat_id, body)
