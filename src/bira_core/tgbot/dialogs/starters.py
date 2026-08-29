@@ -8,12 +8,24 @@ from aiogram.filters import Command
 from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
-from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
+from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import BgManagerFactory, Data, DialogManager, ShowMode, StartMode
 
-from bira_core.tgbot.dialogs.errors import StaleIntentNotifier
+from bira_core.tgbot.commands import cancel_command
+from bira_core.tgbot.dialogs.notifier import delete_if_exists
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_start_data(
+    data: Data,
+    callback_data: CallbackData | None,
+) -> Any:
+    if data is not None and callable(data):
+        return data(callback_data) if callback_data else data(None)
+    if data is not None:
+        return data
+    return callback_data.model_dump() if callback_data else None
 
 
 def register_start_handler(
@@ -51,19 +63,17 @@ def register_callback_starter(
         **kwargs: Any,
     ) -> None:
         await callback.answer()
-        if callback.bot is None or not isinstance(callback.message, Message):
+        message = callback.message
+        if callback.bot is None or message is None or not hasattr(message, "chat"):
             return
-        if data is not None and callable(data):
-            start_data = data(callback_data) if callback_data else None
-        else:
-            start_data = callback_data.model_dump() if callback_data else None
+        start_data = _resolve_start_data(data, callback_data)
 
         bg = bg_manager_factory.bg(
             callback.bot,
             callback.from_user.id,
-            callback.message.chat.id,
-            thread_id=callback.message.message_thread_id,
-            business_connection_id=callback.message.business_connection_id,
+            message.chat.id,
+            thread_id=getattr(message, "message_thread_id", None),
+            business_connection_id=getattr(message, "business_connection_id", None),
         )
         await bg.start(state, mode=mode, show_mode=show_mode, data=start_data)
 
@@ -80,13 +90,14 @@ def register_business_handler(
     mode: StartMode = StartMode.NORMAL,
     show_mode: ShowMode = ShowMode.AUTO,
     data: Data = None,
+    delete_on_start: bool = False,
 ) -> None:
     async def start_dialog(
         message: Message,
         dialog_manager: DialogManager,
-        notifier: StaleIntentNotifier,
     ) -> None:
-        await notifier.safe_delete_message(message)
+        if delete_on_start and message.bot is not None:
+            await delete_if_exists(message.bot, message.chat.id, message.message_id)
         await dialog_manager.start(state, mode=mode, data=data, show_mode=show_mode)
 
     router.business_message.register(
@@ -101,15 +112,7 @@ async def cancel_state(
     dialog_manager: DialogManager,
 ) -> None:
     await dialog_manager.reset_stack(remove_keyboard=True)
-    current_state = await state.get_state()
-    if current_state is None:
-        return
-    logger.info("Cancelling state %s", current_state)
-    await state.clear()
-    await message.reply(
-        "Диалог прекращён, данные удалены",
-        reply_markup=ReplyKeyboardRemove(remove_keyboard=True),
-    )
+    await cancel_command(message, state)
 
 
 def register_cancel_state(

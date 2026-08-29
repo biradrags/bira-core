@@ -12,7 +12,6 @@ from bira_core.tgbot.dialogs.widgets import (
     AdaptiveGroup,
     ProgressSteps,
     cancel_delete,
-    cancel_reset,
 )
 
 __all__ = [
@@ -20,7 +19,6 @@ __all__ = [
     "ProgressSteps",
     "TgDialogNotifier",
     "cancel_delete",
-    "cancel_reset",
     "cancel_state",
     "clear_stale_intent",
     "print_router_tree",

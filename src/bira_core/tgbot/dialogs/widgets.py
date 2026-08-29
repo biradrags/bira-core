@@ -10,7 +10,7 @@ from aiogram_dialog.widgets.text import Text
 from bira_core.kbd import DEFAULT_ROW_CHARS, wrap_by_label_width
 
 
-async def cancel_reset(
+async def _cancel_reset(
     c: CallbackQuery, button: Button, manager: DialogManager
 ) -> None:
     await manager.done(show_mode=ShowMode.NO_UPDATE)
