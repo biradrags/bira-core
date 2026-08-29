@@ -8,7 +8,7 @@ from maxo.fsm.key_builder import DefaultKeyBuilder
 from maxo.integrations.dishka import CONTAINER_NAME, setup_dishka
 
 
-class MaxBotToken(Protocol):
+class MaxToken(Protocol):
     def get_secret_value(self) -> str: ...
 
 
@@ -16,7 +16,7 @@ class MaxBotProvider(Provider):
     scope = Scope.APP
 
     @provide
-    def create_max_bot(self, token: MaxBotToken) -> MaxBot:
+    def provide_max_bot(self, token: MaxToken) -> MaxBot:
         return MaxBot(token=token.get_secret_value(), warming_up=False)
 
 

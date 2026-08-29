@@ -5,6 +5,7 @@ from bira_core.maxbot.filters import IsSuperAdmin
 from bira_core.maxbot.notifier import MaxDialogNotifier
 from bira_core.maxbot.polling import (
     MaxPollingManager,
+    SecondaryBotFactory,
     run_long_polling,
     stop_max_polling,
 )
@@ -15,6 +16,7 @@ __all__ = [
     "MaxBotProvider",
     "MaxDialogNotifier",
     "MaxPollingManager",
+    "SecondaryBotFactory",
     "cancel_delete",
     "clear_stale_intent",
     "create_max_dispatcher",

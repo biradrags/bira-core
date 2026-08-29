@@ -4,7 +4,7 @@ import asyncio
 import logging
 from collections.abc import Callable
 from contextlib import suppress
-from typing import Any
+from typing import Any, Protocol
 
 from aiohttp import web
 from dishka import AsyncContainer
@@ -16,16 +16,19 @@ from bira_core.maxbot.web import drop_webhook_subscriptions
 logger = logging.getLogger(__name__)
 
 
+class SecondaryBotFactory(Protocol):
+    def create_dispatcher(self) -> Dispatcher: ...
+
+
 async def run_long_polling(
     bot: Bot,
     dp: Dispatcher,
     *,
     prepare: Callable[[Bot], Any] | None = None,
 ) -> None:
+    await drop_webhook_subscriptions(bot)
     if prepare is not None:
         await prepare(bot)
-    else:
-        await drop_webhook_subscriptions(bot)
     lp = LongPolling(dp)
     await lp.start(bot)
 
@@ -35,10 +38,10 @@ class MaxPollingManager:
         self,
         container: AsyncContainer,
         *,
-        create_secondary_dispatcher: Callable[[], Dispatcher],
+        secondary_factory: SecondaryBotFactory,
     ) -> None:
         self._container = container
-        self._create_secondary_dispatcher = create_secondary_dispatcher
+        self._secondary_factory = secondary_factory
         self._tasks: dict[int, asyncio.Task[None]] = {}
 
     async def start_main(self) -> None:
@@ -52,7 +55,7 @@ class MaxPollingManager:
     async def register_bot(self, bot_id: int, token: str) -> None:
         if bot_id in self._tasks:
             return
-        dp = self._create_secondary_dispatcher()
+        dp = self._secondary_factory.create_dispatcher()
         bot = Bot(token=token, warming_up=False)
         await drop_webhook_subscriptions(bot)
         task = asyncio.create_task(LongPolling(dp).start(bot))
