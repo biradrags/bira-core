@@ -13,9 +13,7 @@ from bira_core.maxbot._errors import is_message_gone
 
 logger = logging.getLogger(__name__)
 
-_QUERY_TOO_OLD_MARKERS = (
-    "query is too old",
-)
+_QUERY_TOO_OLD_MARKERS = ("query is too old",)
 
 
 class MaxDialogNotifier:

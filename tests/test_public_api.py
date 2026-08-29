@@ -35,6 +35,7 @@ ROOT_EXPECTED = {
 _SKIP_MODULES = frozenset(
     {
         "bira_core.rules_check",
+        "bira_core._tasks",
         "bira_core.tgbot.web_bootstrap",
         "bira_core.tgbot.dialogs.notifier",
         "bira_core.tgbot.dialogs.starters",
@@ -42,6 +43,7 @@ _SKIP_MODULES = frozenset(
         "bira_core.tgbot.dialogs.errors",
         "bira_core.tgbot.dialogs.debug",
         "bira_core.maxbot.errors",
+        "bira_core.maxbot._errors",
         "bira_core.di.db",
         "bira_core.di.redis",
         "bira_core.di.notify",

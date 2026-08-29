@@ -39,4 +39,4 @@ class DelayedDeleter:
         except asyncio.CancelledError:
             raise
         except Exception:
-            pass
+            logger.warning("delayed task failed", exc_info=True)

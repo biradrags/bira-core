@@ -27,7 +27,7 @@ async def test_drop_webhook_subscriptions_unsubscribes_all() -> None:
 
 @pytest.mark.asyncio
 async def test_is_superadmin_filter() -> None:
-    filt = IsSuperAdmin({1, 2})
+    filt = IsSuperAdmin(superusers={1, 2})
     ctx: dict[str, object] = {"user": _User(2)}
     assert await filt(MagicMock(), ctx) is True
     ctx["user"] = _User(3)
