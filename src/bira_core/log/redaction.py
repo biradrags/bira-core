@@ -73,7 +73,10 @@ def redact_string(s: str) -> str:
 
 
 def _is_sensitive_key(key: str) -> bool:
-    k = re.sub(r"(?<!^)(?=[A-Z])", "_", key).lower()
+    if any(c.islower() for c in key) and any(c.isupper() for c in key):
+        k = re.sub(r"(?<!^)(?=[A-Z])", "_", key).lower()
+    else:
+        k = key.lower()
     return k in SENSITIVE_KEY_NAMES or k.endswith(SENSITIVE_KEY_SUFFIXES)
 
 

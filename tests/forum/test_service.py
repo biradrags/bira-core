@@ -53,6 +53,23 @@ async def test_ensure_topic_reuses_existing() -> None:
 
 
 @pytest.mark.asyncio
+async def test_ensure_topic_concurrent_single_create() -> None:
+    import asyncio
+
+    bot = AsyncMock()
+    bot.create_forum_topic.return_value.message_thread_id = 42
+    store = MemoryThreadStore()
+    forum = ForumTopics(bot, -1001, store)
+
+    await asyncio.gather(
+        forum.send("user:1", "a", topic_name="Lead"),
+        forum.send("user:1", "b", topic_name="Lead"),
+    )
+
+    bot.create_forum_topic.assert_awaited_once()
+
+
+@pytest.mark.asyncio
 async def test_send_recovers_on_deleted_topic() -> None:
     bot = AsyncMock()
     store = MemoryThreadStore()

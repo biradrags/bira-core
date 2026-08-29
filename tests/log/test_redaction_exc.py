@@ -8,7 +8,9 @@ from bira_core.log.redaction import redact_extra
 
 
 @pytest.fixture
-def caplog_logfmt(caplog: pytest.LogCaptureFixture) -> Iterator[pytest.LogCaptureFixture]:
+def caplog_logfmt(
+    caplog: pytest.LogCaptureFixture,
+) -> Iterator[pytest.LogCaptureFixture]:
     setup_logging("INFO")
     logger = logging.getLogger("test.redaction.exc")
     logger.handlers.clear()

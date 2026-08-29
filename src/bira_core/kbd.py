@@ -7,12 +7,11 @@ DEFAULT_ROW_CHARS = 30
 
 __all__ = [
     "DEFAULT_ROW_CHARS",
-    "wrap_button_rows",
     "wrap_by_label_width",
 ]
 
 
-def wrap_by_label_width(
+def _wrap_indices(
     labels: Sequence[str], *, row_chars: int = DEFAULT_ROW_CHARS
 ) -> list[list[int]]:
     rows: list[list[int]] = []
@@ -30,7 +29,7 @@ def wrap_by_label_width(
     return rows
 
 
-def wrap_button_rows(buttons: list[Any], max_row_chars: int) -> list[list[Any]]:
+def wrap_by_label_width(buttons: Sequence[Any], max_row_chars: int) -> list[list[Any]]:
     rows: list[list[Any]] = []
     row: list[Any] = []
     row_len = 0

@@ -7,7 +7,7 @@ from aiogram_dialog.api.protocols import DialogManager as DialogManagerProtocol
 from aiogram_dialog.widgets.kbd import Button, Group
 from aiogram_dialog.widgets.text import Text
 
-from bira_core.kbd import DEFAULT_ROW_CHARS, wrap_button_rows
+from bira_core.kbd import DEFAULT_ROW_CHARS, wrap_by_label_width
 
 
 async def cancel_reset(
@@ -78,4 +78,4 @@ class AdaptiveGroup(Group):
         self.max_row_chars = max_row_chars
 
     def _wrap_kbd(self, kbd: list[Any]) -> list[list[Any]]:  # type: ignore[override]
-        return wrap_button_rows(kbd, self.max_row_chars)
+        return wrap_by_label_width(kbd, self.max_row_chars)

@@ -10,6 +10,13 @@ def test_redis_connection_kwargs_shape() -> None:
     assert "retry" in kwargs
 
 
+def test_make_redis_client_default_decode_responses() -> None:
+    with patch("redis.asyncio.from_url") as from_url:
+        from_url.return_value = object()
+        make_redis_client("redis://localhost:6379/0")
+        assert from_url.call_args.kwargs["decode_responses"] is True
+
+
 def test_make_redis_client_uses_from_url() -> None:
     with patch("redis.asyncio.from_url") as from_url:
         from_url.return_value = object()

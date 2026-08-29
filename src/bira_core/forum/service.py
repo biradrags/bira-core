@@ -45,14 +45,20 @@ class ForumTopics:
         self._forum_chat_id = forum_chat_id
         self._store = store
         self._call_timeout = call_timeout
+        self._locks: dict[str, asyncio.Lock] = {}
 
     async def ensure_topic(self, key: str, name: str) -> int:
         topic_id = await self._store.get_thread_id(key)
         if topic_id is not None:
             return topic_id
-        topic_id = await self._create_topic(name)
-        await self._store.set_thread_id(key, topic_id)
-        return topic_id
+        lock = self._locks.setdefault(key, asyncio.Lock())
+        async with lock:
+            topic_id = await self._store.get_thread_id(key)
+            if topic_id is not None:
+                return topic_id
+            topic_id = await self._create_topic(name)
+            await self._store.set_thread_id(key, topic_id)
+            return topic_id
 
     async def send(
         self,

@@ -9,6 +9,12 @@
 - `setup_logging(level, *, extra_patterns=(), extra_silence=())` — logfmt + probe-filter + silence-список (v0.1 тонкий StreamHandler заменён).
 - `aiogram` убран из core-зависимостей; TG-слой — extra `tgbot` (`pip install bira-core[tgbot]`). `dialogs` требует `aiogram>=3.20` явно.
 - `bira_core.tg` → `bira_core.tgbot`; `bira_core.dialogs` → `bira_core.tgbot.dialogs`; `MaxUser.tg_id` → `MaxUser.user_id`.
+- Нотифаеры: `safe_*` → `answer`/`warn`/`delete`/`ack` (вариант А); `delete_if_exists` — свободная функция.
+- `wrap_by_label_width(buttons, max_row_chars)` — донорская сигнатура; индексная версия — `_wrap_indices`.
+
+### Un-breaking
+
+- `make_redis_client(..., decode_responses=True)` — дефолт как у донора.
 
 ### Новые модули
 

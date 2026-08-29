@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from bira_core.kbd import wrap_by_label_width
+from bira_core.kbd import _wrap_indices
 from bira_core.tgbot.dialogs.widgets import AdaptiveGroup, ProgressSteps
 
 
@@ -15,7 +15,7 @@ async def test_progress_steps_render_text() -> None:
 
 def test_adaptive_group_wrap_matches_kbd() -> None:
     labels = ["A", "B", "long label here"]
-    expected = wrap_by_label_width(labels, row_chars=10)
+    expected = _wrap_indices(labels, row_chars=10)
 
     class Btn:
         def __init__(self, text: str) -> None:

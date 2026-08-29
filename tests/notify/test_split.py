@@ -1,5 +1,6 @@
-from bira_core.notify.split import split_message
 import pytest
+
+from bira_core.notify.split import split_message
 
 
 @pytest.mark.parametrize("n", [4095, 4096, 4097, 5000, 12290, 50000])

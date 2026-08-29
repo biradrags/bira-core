@@ -35,7 +35,7 @@ def redis_connection_kwargs(*, decode_responses: bool = True) -> dict[str, Any]:
     }
 
 
-def make_redis_client(url: str, *, decode_responses: bool = False) -> redis.Redis:
+def make_redis_client(url: str, *, decode_responses: bool = True) -> redis.Redis:
     return redis.from_url(
         url,
         **redis_connection_kwargs(decode_responses=decode_responses),
