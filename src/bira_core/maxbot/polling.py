@@ -6,12 +6,14 @@ import asyncio
 import logging
 from collections.abc import Callable
 from contextlib import suppress
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from aiohttp import web
-from dishka import AsyncContainer
 from maxo import Bot, Dispatcher
 from maxo.transport.long_polling import LongPolling
+
+if TYPE_CHECKING:
+    from dishka import AsyncContainer
 
 from bira_core.maxbot.web import drop_webhook_subscriptions
 
@@ -19,10 +21,10 @@ logger = logging.getLogger(__name__)
 
 
 class SecondaryBotFactory(Protocol):
-    """Secondary Bot Factory."""
+    """Build secondary Max dispatchers for multi-bot polling."""
 
     def create_dispatcher(self) -> Dispatcher:
-        """Create dispatcher."""
+        """Return a fresh Dispatcher wired for one secondary bot."""
         ...
 
 
@@ -32,7 +34,7 @@ async def run_long_polling(
     *,
     prepare: Callable[[Bot], Any] | None = None,
 ) -> None:
-    """Run long polling."""
+    """Drop webhooks then block in LongPolling; prepare runs after drop."""
     await drop_webhook_subscriptions(bot)
     if prepare is not None:
         await prepare(bot)
@@ -41,7 +43,7 @@ async def run_long_polling(
 
 
 class MaxPollingManager:
-    """Max Polling Manager."""
+    """Manage main and secondary MAX bots in background polling tasks."""
 
     def __init__(
         self,
@@ -49,13 +51,13 @@ class MaxPollingManager:
         *,
         secondary_factory: SecondaryBotFactory,
     ) -> None:
-        """Initialize instance."""
+        """Hold Dishka container and factory for extra bot dispatchers."""
         self._container = container
         self._secondary_factory = secondary_factory
         self._tasks: dict[int, asyncio.Task[None]] = {}
 
     async def start_main(self) -> None:
-        """Start main."""
+        """Start polling for the primary bot from the container."""
         bot = await self._container.get(Bot)
         dp = await self._container.get(Dispatcher)
         await drop_webhook_subscriptions(bot)
@@ -64,7 +66,7 @@ class MaxPollingManager:
         logger.info("Max main bot polling started")
 
     async def register_bot(self, bot_id: int, token: str) -> None:
-        """Register Bot."""
+        """Spawn polling for an additional token if not already running."""
         if bot_id in self._tasks:
             return
         dp = self._secondary_factory.create_dispatcher()
@@ -75,14 +77,14 @@ class MaxPollingManager:
         logger.info("max secondary bot polling started", extra={"bot_id": bot_id})
 
     async def unregister_bot(self, bot_id: int) -> None:
-        """Unregister bot."""
+        """Cancel polling task for bot_id when present."""
         task = self._tasks.pop(bot_id, None)
         if task:
             await self._cancel_task(bot_id=bot_id, task=task)
             logger.info("max secondary bot polling stopped", extra={"bot_id": bot_id})
 
     async def stop_all(self) -> None:
-        """Stop all."""
+        """Cancel every active main/secondary polling task."""
         for bot_id in list(self._tasks):
             task = self._tasks.pop(bot_id)
             await self._cancel_task(bot_id=bot_id, task=task)
@@ -101,7 +103,7 @@ class MaxPollingManager:
 
 
 async def stop_max_polling(app: web.Application) -> None:
-    """Stop max polling."""
+    """aiohttp cleanup hook that stops MaxPollingManager if attached."""
     polling_mgr = app.get("max_polling_manager")
     if polling_mgr is not None:
         await polling_mgr.stop_all()

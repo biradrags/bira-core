@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from aiohttp import web
 from aiohttp.web_routedef import RouteDef
-from dishka import AsyncContainer
-from dishka.integrations.aiohttp import setup_dishka
 
 from bira_core.web.cron import CRON_PORT, cron_protocol, fly_src_gate
+
+if TYPE_CHECKING:
+    from dishka import AsyncContainer
 
 
 def create_cron_app(
@@ -18,10 +20,12 @@ def create_cron_app(
     allowed: frozenset[str] = frozenset({"bira-cron"}),
     container: AsyncContainer | None = None,
 ) -> web.Application:
-    """Create cron app."""
+    """aiohttp app for Fly cron with src gate; optional Dishka when container is set."""
     app = web.Application(middlewares=[fly_src_gate(allowed), cron_protocol()])
     app.router.add_routes(routes)
     if container is not None:
+        from dishka.integrations.aiohttp import setup_dishka
+
         setup_dishka(container, app, auto_inject=True, finalize_container=False)
     return app
 

@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from typing import Any
 
 from aiohttp import web
 from aiohttp.typedefs import Middleware
 
 from bira_core.protect.flood_guard import FloodGuard
-from bira_core.protect.heuristics import IsLikelyBot, StartDeduper
-from bira_core.protect.rate_limit import RateLimiter
+from bira_core.protect.heuristics import StartDeduper
 
 __all__ = [
     "FloodGuard",
@@ -19,12 +19,27 @@ __all__ = [
     "flood_guard_middleware",
 ]
 
+_LAZY_EXPORTS: dict[str, str] = {
+    "IsLikelyBot": "bira_core.protect.heuristics",
+    "RateLimiter": "bira_core.protect.rate_limit",
+}
+
+
+def __getattr__(name: str) -> Any:
+    module_path = _LAZY_EXPORTS.get(name)
+    if module_path is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    from importlib import import_module
+
+    module = import_module(module_path)
+    return getattr(module, name)
+
 
 def flood_guard_middleware(
     guard: FloodGuard,
     rate_key: Callable[[web.Request], str],
 ) -> Middleware:
-    """Flood guard middleware."""
+    """aiohttp middleware returning 429 when FloodGuard denies the key."""
 
     @web.middleware
     async def middleware(
