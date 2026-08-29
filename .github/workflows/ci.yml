@@ -53,3 +53,33 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --all-extras
       - run: uv run pytest -q -n 2 --dist loadgroup
+
+  smoke-extras:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        extra:
+          - core
+          - db
+          - di
+          - redis
+          - tgbot
+          - dialogs
+          - max
+          - payments
+          - protect
+          - alembic
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install package with single extra
+        run: |
+          EXTRAS=""
+          if [ "${{ matrix.extra }}" != "core" ]; then
+            EXTRAS="--extra ${{ matrix.extra }}"
+          fi
+          uv venv /tmp/smoke-venv
+          uv pip install --python /tmp/smoke-venv/bin/python -e ".${EXTRAS}"
+      - name: Run smoke
+        run: /tmp/smoke-venv/bin/python scripts/smoke_extra.py ${{ matrix.extra }}

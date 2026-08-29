@@ -7,6 +7,7 @@
 ### Breaking
 
 - `setup_logging(level, *, extra_patterns=(), extra_silence=())` — logfmt + probe-filter + silence-список (v0.1 тонкий StreamHandler заменён).
+- `aiogram` убран из core-зависимостей; TG-слой — extra `tgbot` (`pip install bira-core[tgbot]`). `dialogs` требует `aiogram>=3.20` явно.
 
 ### Новые модули
 

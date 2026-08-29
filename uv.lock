@@ -331,7 +331,6 @@ name = "bira-core"
 version = "0.2.0"
 source = { editable = "." }
 dependencies = [
-    { name = "aiogram" },
     { name = "aiohttp" },
 ]
 
@@ -350,6 +349,7 @@ di = [
     { name = "dishka" },
 ]
 dialogs = [
+    { name = "aiogram" },
     { name = "aiogram-dialog" },
 ]
 max = [
@@ -364,9 +364,13 @@ protect = [
 redis = [
     { name = "redis" },
 ]
+tgbot = [
+    { name = "aiogram" },
+]
 
 [package.dev-dependencies]
 dev = [
+    { name = "aiogram" },
     { name = "aiogram-dialog" },
     { name = "alembic" },
     { name = "asyncpg" },
@@ -385,9 +389,10 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiogram", specifier = ">=3.20" },
+    { name = "aiogram", marker = "extra == 'dialogs'", specifier = ">=3.20" },
+    { name = "aiogram", marker = "extra == 'tgbot'", specifier = ">=3.20" },
     { name = "aiogram-dialog", marker = "extra == 'dialogs'", specifier = ">=2.5,<3" },
-    { name = "aiohttp", specifier = ">=3.9" },
+    { name = "aiohttp", specifier = ">=3.9.4" },
     { name = "alembic", marker = "extra == 'alembic'", specifier = ">=1.13" },
     { name = "asyncpg", marker = "extra == 'alembic'", specifier = ">=0.29" },
     { name = "asyncpg", marker = "extra == 'db'", specifier = ">=0.29" },
@@ -400,10 +405,11 @@ requires-dist = [
     { name = "sqlalchemy", extras = ["asyncio"], marker = "extra == 'db'", specifier = ">=2.0" },
     { name = "tenacity", marker = "extra == 'payments'", specifier = ">=8" },
 ]
-provides-extras = ["db", "redis", "di", "dialogs", "max", "payments", "protect", "alembic"]
+provides-extras = ["db", "redis", "di", "tgbot", "dialogs", "max", "payments", "protect", "alembic"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "aiogram", specifier = ">=3.20" },
     { name = "aiogram-dialog", specifier = ">=2.5,<3" },
     { name = "alembic", specifier = ">=1.13" },
     { name = "asyncpg", specifier = ">=0.29" },

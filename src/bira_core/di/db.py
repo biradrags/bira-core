@@ -1,8 +1,6 @@
-from collections.abc import AsyncIterable, Sequence
-from typing import Any
+from collections.abc import AsyncIterable
 
-from dishka import AsyncContainer, Provider, Scope, provide
-from redis.asyncio.client import Redis
+from dishka import Provider, Scope, provide
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -11,9 +9,6 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from bira_core.db.url import DbDsn, build_url
-from bira_core.di._redis import make_redis_client
-from bira_core.notify.alerts import Alerts
-from bira_core.notify.send import MessageSender
 
 
 class DbProvider(Provider):
@@ -59,25 +54,3 @@ class DbProvider(Provider):
     ) -> AsyncIterable[AsyncSession]:
         async with pool() as session:
             yield session
-
-
-class RedisProvider(Provider):
-    scope = Scope.APP
-
-    @provide
-    async def redis(self, redis_url: str) -> AsyncIterable[Redis]:
-        client = make_redis_client(redis_url)
-        yield client
-        await client.aclose()
-
-
-class NotifierProvider(Provider):
-    @provide
-    def alerts(self, sender: MessageSender, owner_chat_id: int) -> Alerts:
-        return Alerts(sender, owner_chat_id)
-
-
-async def warm_up(container: AsyncContainer, types: Sequence[type[Any]]) -> None:
-    async with container() as request:
-        for dep in types:
-            await request.get(dep)

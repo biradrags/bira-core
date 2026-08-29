@@ -4,10 +4,6 @@ import asyncio
 import logging
 from typing import Any, Protocol, runtime_checkable
 
-from aiogram import Bot
-from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import Message
-
 logger = logging.getLogger(__name__)
 
 TOPIC_GONE_MARKERS = frozenset(
@@ -27,7 +23,11 @@ class ThreadStore(Protocol):
     async def set_thread_id(self, key: str, thread_id: int) -> None: ...
 
 
-def _is_topic_gone(exc: TelegramBadRequest) -> bool:
+def _is_topic_gone(exc: BaseException) -> bool:
+    from aiogram.exceptions import TelegramBadRequest
+
+    if not isinstance(exc, TelegramBadRequest):
+        return False
     text = str(exc).lower()
     return any(marker.lower() in text for marker in TOPIC_GONE_MARKERS)
 
@@ -35,7 +35,7 @@ def _is_topic_gone(exc: TelegramBadRequest) -> bool:
 class ForumTopics:
     def __init__(
         self,
-        bot: Bot,
+        bot: Any,
         forum_chat_id: int,
         store: ThreadStore,
         *,
@@ -61,7 +61,9 @@ class ForumTopics:
         *,
         topic_name: str,
         **kwargs: Any,
-    ) -> Message:
+    ) -> Any:
+        from aiogram.exceptions import TelegramBadRequest
+
         topic_id = await self.ensure_topic(key, topic_name)
         try:
             return await self._send_to_topic(topic_id, text, **kwargs)
@@ -91,7 +93,7 @@ class ForumTopics:
         topic_id: int,
         text: str,
         **kwargs: Any,
-    ) -> Message:
+    ) -> Any:
         return await asyncio.wait_for(
             self._bot.send_message(
                 self._forum_chat_id,
