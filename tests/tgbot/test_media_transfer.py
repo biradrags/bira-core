@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from aiogram.exceptions import TelegramRetryAfter
 from aiogram.types import Message
 
 from bira_core.tgbot.media_transfer import (
@@ -43,6 +44,28 @@ async def test_download_file_for_transfer_uses_basename() -> None:
         assert path is not None
         assert path.name == "passwd"
         assert ".." not in str(path)
+
+
+@pytest.mark.asyncio
+async def test_download_file_for_transfer_dotdot_name() -> None:
+    bot = AsyncMock()
+    bot.get_file.return_value.file_path = "photos/file.jpg"
+    bot.download_file = AsyncMock()
+
+    async with download_file_for_transfer(bot, "file_id", 100, "..") as path:
+        assert path is not None
+        assert path.name == "file"
+        assert path.parent.exists()
+
+
+@pytest.mark.asyncio
+async def test_body_exception_passes_through() -> None:
+    bot = AsyncMock()
+    bot.get_file.return_value.file_path = "photos/file.jpg"
+    bot.download_file = AsyncMock()
+    with pytest.raises(TelegramRetryAfter):
+        async with download_file_for_transfer(bot, "file_id", 100, "x.jpg") as _path:
+            raise TelegramRetryAfter(method=MagicMock(), message="RETRY", retry_after=5)
 
 
 @pytest.mark.asyncio

@@ -69,31 +69,32 @@ async def download_file_for_transfer(
         return
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        safe_name = Path(filename).name if filename else "file"
-        tmp_path = Path(tmp_dir) / (safe_name or "file")
+        safe_name = Path(filename).name if filename else ""
+        if safe_name in ("", ".", ".."):
+            safe_name = "file"
+        tmp_path = Path(tmp_dir) / safe_name
+        path_result: Path | None = None
         try:
             file_info = await src_bot.get_file(file_id)
             file_path = file_info.file_path
             if file_path is None:
-                yield None
-                return
-
-            if file_path.startswith("/"):
+                path_result = None
+            elif file_path.startswith("/"):
                 logger.debug(
                     "local Bot API path detected, skipping download",
                     extra={"path": file_path},
                 )
-                yield None
-                return
-
-            await src_bot.download_file(file_path, tmp_path)
-            yield tmp_path
+                path_result = None
+            else:
+                await src_bot.download_file(file_path, tmp_path)
+                path_result = tmp_path
         except Exception as e:  # noqa: BLE001
             logger.warning(
                 "failed to download file",
                 extra={"file_id": file_id, "err": f"{type(e).__name__}: {e}"},
             )
-            yield None
+            path_result = None
+        yield path_result
 
 
 async def transfer_message(
