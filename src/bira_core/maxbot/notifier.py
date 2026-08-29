@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import logging
 
 from maxo.bot import Bot
@@ -9,13 +8,14 @@ from maxo.enums import TextFormat
 from maxo.errors import MaxBotBadRequestError
 from maxo.routing.updates import MessageCallback, MessageCreated
 
+from bira_core._tasks import DelayedDeleter
+from bira_core.maxbot._errors import is_message_gone
+
 logger = logging.getLogger(__name__)
 
-_MESSAGE_GONE_MARKERS = (
-    "message to delete not found",
-    "message can't be deleted",
+_QUERY_TOO_OLD_MARKERS = (
+    "query is too old",
 )
-_QUERY_TOO_OLD_MARKERS = ("query is too old",)
 
 
 class MaxDialogNotifier:
@@ -25,7 +25,7 @@ class MaxDialogNotifier:
 
     def __init__(self, bot: Bot) -> None:
         self._bot = bot
-        self._pending_deletes: set[asyncio.Task[None]] = set()
+        self._deleter = DelayedDeleter()
 
     async def answer(
         self,
@@ -54,7 +54,11 @@ class MaxDialogNotifier:
             else None
         )
         if sent_mid is not None:
-            self._schedule_delete(sent_mid, ttl)
+
+            async def _delete() -> None:
+                await self.delete(0, sent_mid)
+
+            self._deleter.schedule(_delete, ttl)
 
     async def warn(
         self,
@@ -69,8 +73,7 @@ class MaxDialogNotifier:
         try:
             await self._bot.delete_message(message_id=message_id)
         except MaxBotBadRequestError as exc:
-            msg = str(exc.message or "").lower()
-            if any(marker in msg for marker in _MESSAGE_GONE_MARKERS):
+            if is_message_gone(exc):
                 return False
             logger.warning(
                 "unexpected MaxBotBadRequestError on delete",
@@ -96,23 +99,4 @@ class MaxDialogNotifier:
             return True
 
     async def shutdown(self) -> None:
-        for task in list(self._pending_deletes):
-            task.cancel()
-        if self._pending_deletes:
-            await asyncio.gather(*self._pending_deletes, return_exceptions=True)
-
-    def _schedule_delete(self, message_id: str, delay: float) -> None:
-        if delay <= 0:
-            return
-        task = asyncio.create_task(self._delete_after(message_id, delay))
-        self._pending_deletes.add(task)
-        task.add_done_callback(self._pending_deletes.discard)
-
-    async def _delete_after(self, message_id: str, delay: float) -> None:
-        try:
-            await asyncio.sleep(delay)
-            await self.delete(0, message_id)
-        except asyncio.CancelledError:
-            raise
-        except Exception:
-            logger.warning("delayed delete failed", exc_info=True)
+        await self._deleter.shutdown()

@@ -3,7 +3,7 @@ from collections.abc import AsyncIterable
 from dishka import Provider, Scope, provide
 from redis.asyncio.client import Redis
 
-from bira_core.di._redis import make_redis_client
+from bira_core.redis import make_redis_client
 
 
 class RedisProvider(Provider):

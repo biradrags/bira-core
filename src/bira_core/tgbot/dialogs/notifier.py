@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import asyncio
 import logging
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, ShowMode
+
+from bira_core._tasks import DelayedDeleter
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ class TgDialogNotifier:
 
     def __init__(self, bot: Bot | None = None) -> None:
         self._bot = bot
-        self._pending_deletes: set[asyncio.Task[None]] = set()
+        self._deleter = DelayedDeleter()
 
     async def answer(
         self,
@@ -54,7 +55,13 @@ class TgDialogNotifier:
             return
         manager.show_mode = ShowMode.EDIT
         sent = await event.answer(text)
-        self._schedule_delete(sent, ttl)
+        bot = self._bot or event.bot
+        if bot is not None:
+
+            async def _delete() -> None:
+                await delete_if_exists(bot, sent.chat.id, sent.message_id)
+
+            self._deleter.schedule(_delete, ttl)
 
     async def warn(
         self,
@@ -86,27 +93,5 @@ class TgDialogNotifier:
         else:
             return True
 
-    def _schedule_delete(self, message: Message, delay: float) -> None:
-        if delay <= 0:
-            return
-        task = asyncio.create_task(self._delete_after(message, delay))
-        self._pending_deletes.add(task)
-        task.add_done_callback(self._pending_deletes.discard)
-
     async def shutdown(self) -> None:
-        for task in list(self._pending_deletes):
-            task.cancel()
-        if self._pending_deletes:
-            await asyncio.gather(*self._pending_deletes, return_exceptions=True)
-
-    async def _delete_after(self, message: Message, delay: float) -> None:
-        try:
-            await asyncio.sleep(delay)
-            bot = self._bot or message.bot
-            if bot is None:
-                return
-            await delete_if_exists(bot, message.chat.id, message.message_id)
-        except asyncio.CancelledError:
-            raise
-        except Exception:
-            logger.warning("delayed delete failed", exc_info=True)
+        await self._deleter.shutdown()

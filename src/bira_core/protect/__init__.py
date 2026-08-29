@@ -1,4 +1,4 @@
-"""In-memory flood guard for aiohttp ingress. Бюджет per-machine."""
+"""L1 in-memory per-machine flood guard; L2 Redis rate limiter (fail_open = N×лимит без окна)."""
 
 from __future__ import annotations
 
@@ -9,14 +9,13 @@ from aiohttp.typedefs import Middleware
 
 from bira_core.protect.flood_guard import FloodGuard
 from bira_core.protect.heuristics import IsLikelyBot, StartDeduper
-from bira_core.protect.rate_limit import RateLimiter, UsageGate
+from bira_core.protect.rate_limit import RateLimiter
 
 __all__ = [
     "FloodGuard",
     "IsLikelyBot",
     "RateLimiter",
     "StartDeduper",
-    "UsageGate",
     "flood_guard_middleware",
 ]
 

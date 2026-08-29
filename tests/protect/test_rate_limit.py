@@ -19,20 +19,20 @@ async def redis_client() -> Redis:
 
 async def test_hit_limit(redis_client: Redis) -> None:
     limiter = RateLimiter(redis_client, fail_open=False)
-    assert await limiter.hit("k", limit=2, window_s=60) is True
-    assert await limiter.hit("k", limit=2, window_s=60) is True
-    assert await limiter.hit("k", limit=2, window_s=60) is False
+    assert await limiter.allow("k", limit=2, window_s=60) is True
+    assert await limiter.allow("k", limit=2, window_s=60) is True
+    assert await limiter.allow("k", limit=2, window_s=60) is False
 
 
 async def test_fail_open_fallback(redis_client: Redis) -> None:
     broken = Redis.from_url("redis://127.0.0.1:1/0", decode_responses=True)
     limiter = RateLimiter(broken, fail_open=True)
-    assert await limiter.hit("k", limit=1, window_s=60) is True
-    assert await limiter.hit("k", limit=1, window_s=60) is False
+    assert await limiter.allow("k", limit=1, window_s=60) is True
+    assert await limiter.allow("k", limit=1, window_s=60) is False
 
 
 async def test_fail_closed_raises() -> None:
     broken = Redis.from_url("redis://127.0.0.1:1/0", decode_responses=True)
     limiter = RateLimiter(broken, fail_open=False)
     with pytest.raises(RateLimitBackendUnavailable):
-        await limiter.hit("k", limit=1, window_s=60)
+        await limiter.allow("k", limit=1, window_s=60)

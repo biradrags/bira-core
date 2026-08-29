@@ -1,7 +1,8 @@
 from maxo.dialogs import DialogManager, ShowMode
 from maxo.dialogs.widgets.kbd import Button
-from maxo.errors import MaxBotBadRequestError
 from maxo.routing.updates import MessageCallback
+
+from bira_core.maxbot._errors import is_message_gone
 
 
 def _message_id_for_delete(
@@ -25,9 +26,6 @@ async def cancel_delete(
     if message_id is not None:
         try:
             await bot.delete_message(message_id=message_id)
-        except MaxBotBadRequestError as err:
-            if (
-                "message to delete not found" not in err.message
-                and "message can't be deleted" not in err.message
-            ):
+        except Exception as err:
+            if not is_message_gone(err):
                 raise
