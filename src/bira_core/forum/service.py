@@ -20,14 +20,14 @@ TOPIC_GONE_MARKERS = frozenset(
 
 @runtime_checkable
 class ThreadStore(Protocol):
-    """Thread Store."""
+    """Persist forum thread_id per logical key (DAO-backed in consumer)."""
 
     async def get_thread_id(self, key: str) -> int | None:
-        """Return Thread id."""
+        """Return stored thread_id or None before first topic creation."""
         ...
 
     async def set_thread_id(self, key: str, thread_id: int) -> None:
-        """Set thread id."""
+        """Persist thread_id after ensure_topic creates or recreates a topic."""
         ...
 
 
@@ -59,7 +59,7 @@ class ForumTopics:
         self._locks: dict[str, asyncio.Lock] = {}
 
     async def ensure_topic(self, key: str, name: str) -> int:
-        """Ensure topic."""
+        """Create topic once per key under per-key lock (concurrent-safe)."""
         topic_id = await self._store.get_thread_id(key)
         if topic_id is not None:
             return topic_id
@@ -80,7 +80,7 @@ class ForumTopics:
         topic_name: str,
         **kwargs: Any,
     ) -> Any:
-        """Send."""
+        """Send to forum topic; recreate topic if Telegram reports it gone."""
         from aiogram.exceptions import TelegramBadRequest
 
         topic_id = await self.ensure_topic(key, topic_name)

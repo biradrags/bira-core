@@ -87,7 +87,7 @@ class TBankClient:
         return data
 
     async def init(self, payload: dict[str, Any]) -> dict[str, Any]:
-        """Init."""
+        """Init payment; keep OrderId stable across retries."""
         return await self._post("/Init", payload)
 
     async def cancel(self, payload: dict[str, Any]) -> dict[str, Any]:

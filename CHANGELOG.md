@@ -7,10 +7,16 @@
 ### Breaking
 
 - `setup_logging(level, *, extra_patterns=(), extra_silence=())` — logfmt + probe-filter + silence-список (v0.1 тонкий StreamHandler заменён).
+- `setup_logging`: явный `level` выигрывает у env `LOG_LEVEL` (раньше env перебивал аргумент).
 - `aiogram` убран из core-зависимостей; TG-слой — extra `tgbot` (`pip install bira-core[tgbot]`). `dialogs` требует `aiogram>=3.20` явно.
 - `bira_core.tg` → `bira_core.tgbot`; `bira_core.dialogs` → `bira_core.tgbot.dialogs`; `MaxUser.tg_id` → `MaxUser.user_id`.
 - Нотифаеры: `safe_*` → `answer`/`warn`/`delete`/`ack` (вариант А); `delete_if_exists` — свободная функция.
 - `wrap_by_label_width(buttons, max_row_chars)` — донорская сигнатура; индексная версия — `_wrap_indices`.
+- `protect`: `RateLimiter.hit` → `allow`; `UsageGate` удалён (рецепт в README).
+- `cancel_reset` удалён из dialogs API; канон — `cancel_delete`.
+- `StaleIntentNotifier` удалён; `clear_stale_intent` берёт `bot` из события.
+- `redis`/`dt`: реализация в `redis/client.py`, `dt/timezone.py`; фасады в `__init__.py`.
+- `log/redaction`: движок в `log/_internal.py`.
 
 ### Un-breaking
 
