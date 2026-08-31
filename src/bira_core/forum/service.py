@@ -17,6 +17,8 @@ TOPIC_GONE_MARKERS = frozenset(
     }
 )
 
+__all__ = ["TOPIC_GONE_MARKERS", "ForumTopics", "ThreadStore"]
+
 
 @runtime_checkable
 class ThreadStore(Protocol):
@@ -29,15 +31,6 @@ class ThreadStore(Protocol):
     async def set_thread_id(self, key: str, thread_id: int) -> None:
         """Persist thread_id after ensure_topic creates or recreates a topic."""
         ...
-
-
-def _is_topic_gone(exc: BaseException) -> bool:
-    from aiogram.exceptions import TelegramBadRequest
-
-    if not isinstance(exc, TelegramBadRequest):
-        return False
-    text = str(exc).lower()
-    return any(marker.lower() in text for marker in TOPIC_GONE_MARKERS)
 
 
 class ForumTopics:
@@ -63,8 +56,7 @@ class ForumTopics:
         topic_id = await self._store.get_thread_id(key)
         if topic_id is not None:
             return topic_id
-        lock = self._locks.setdefault(key, asyncio.Lock())
-        async with lock:
+        async with self._locks.setdefault(key, asyncio.Lock()):
             topic_id = await self._store.get_thread_id(key)
             if topic_id is not None:
                 return topic_id
@@ -93,11 +85,26 @@ class ForumTopics:
                 "forum topic gone, recreating",
                 extra={"key": key, "topic_id": topic_id},
             )
-            topic_id = await self._create_topic(topic_name)
-            await self._store.set_thread_id(key, topic_id)
+            topic_id = await self._recreate_topic(key, topic_name, stale_id=topic_id)
             return await self._send_to_topic(topic_id, text, **kwargs)
 
+    async def _recreate_topic(self, key: str, name: str, *, stale_id: int) -> int:
+        """Пересоздать топик под тем же локом, что и ensure_topic.
+
+        Без общего лока два конкурентных send создают два топика, и сообщение
+        проигравшей гонки уходит в тот, на который store уже не ссылается.
+        """
+        async with self._locks.setdefault(key, asyncio.Lock()):
+            current = await self._store.get_thread_id(key)
+            if current is not None and current != stale_id:
+                return current
+            topic_id = await self._create_topic(name)
+            await self._store.set_thread_id(key, topic_id)
+            return topic_id
+
     async def _create_topic(self, name: str) -> int:
+        # wait_for на каждый вызов Telegram: suspend-рантайм может заморозить
+        # процесс посреди запроса, а зависшая корутина держала бы лок ключа.
         topic = await asyncio.wait_for(
             self._bot.create_forum_topic(
                 chat_id=self._forum_chat_id,
@@ -122,3 +129,12 @@ class ForumTopics:
             ),
             timeout=self._call_timeout,
         )
+
+
+def _is_topic_gone(exc: BaseException) -> bool:
+    from aiogram.exceptions import TelegramBadRequest
+
+    if not isinstance(exc, TelegramBadRequest):
+        return False
+    text = str(exc).lower()
+    return any(marker.lower() in text for marker in TOPIC_GONE_MARKERS)

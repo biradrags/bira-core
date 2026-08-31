@@ -29,19 +29,14 @@ class TokenBucket:
             return True
         return False
 
+    @property
+    def last_used(self) -> float:
+        """Timestamp of the last try_consume call."""
+        return self._last
 
-class _PerKeyLimiter:
-    def __init__(self, capacity: float, refill_per_sec: float) -> None:
-        self._capacity = capacity
-        self._refill_per_sec = refill_per_sec
-        self._buckets: dict[str, TokenBucket] = {}
-
-    def allow(self, key: str, now: float) -> bool:
-        bucket = self._buckets.get(key)
-        if bucket is None:
-            bucket = TokenBucket(self._capacity, self._refill_per_sec)
-            self._buckets[key] = bucket
-        return bucket.try_consume(now)
+    def is_replenished(self) -> bool:
+        """True when the bucket is back at full capacity."""
+        return self._tokens >= self._capacity
 
 
 class FloodGuard:
@@ -54,10 +49,11 @@ class FloodGuard:
         per_key_burst: int,
         global_rate: float,
         global_burst: int,
+        max_keys: int = 10_000,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
-        """Configure per-key and global rate/burst limits."""
-        self._per_key = _PerKeyLimiter(per_key_burst, per_key_rate)
+        """Configure per-key and global rate/burst limits plus key-table cap."""
+        self._per_key = _PerKeyLimiter(per_key_burst, per_key_rate, max_keys=max_keys)
         self._global = TokenBucket(global_burst, global_rate)
         self._clock = clock
 
@@ -67,3 +63,42 @@ class FloodGuard:
         if not self._per_key.allow(key, now):
             return False
         return self._global.try_consume(now)
+
+    def tracked_keys(self) -> int:
+        """Current size of the per-key table; for tests and health metrics."""
+        return self._per_key.size
+
+
+class _PerKeyLimiter:
+    def __init__(
+        self, capacity: float, refill_per_sec: float, *, max_keys: int
+    ) -> None:
+        self._capacity = capacity
+        self._refill_per_sec = refill_per_sec
+        self._max_keys = max_keys
+        self._buckets: dict[str, TokenBucket] = {}
+
+    @property
+    def size(self) -> int:
+        return len(self._buckets)
+
+    def allow(self, key: str, now: float) -> bool:
+        bucket = self._buckets.get(key)
+        if bucket is None:
+            # Без вытеснения таблица растёт на каждый новый ключ, а процесс на
+            # Fly живёт неделями: флуд с разных аккаунтов = OOM того же бота.
+            if len(self._buckets) >= self._max_keys:
+                self._evict(now)
+            bucket = TokenBucket(self._capacity, self._refill_per_sec)
+            self._buckets[key] = bucket
+        return bucket.try_consume(now)
+
+    def _evict(self, now: float) -> None:
+        replenished = [k for k, b in self._buckets.items() if b.is_replenished()]
+        for key in replenished:
+            del self._buckets[key]
+        if len(self._buckets) < self._max_keys:
+            return
+        oldest = sorted(self._buckets, key=lambda k: self._buckets[k].last_used)
+        for key in oldest[: len(self._buckets) // 2 or 1]:
+            del self._buckets[key]
