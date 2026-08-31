@@ -1,3 +1,5 @@
+"""Generic async DAO base for Postgres."""
+
 from collections.abc import Sequence
 from typing import TypeVar
 
@@ -10,7 +12,10 @@ Model_co = TypeVar("Model_co", bound=DeclarativeBase, covariant=True)
 
 
 class BaseDAO[Model_co]:
+    """Shared async DAO bound to one SQLAlchemy model and session."""
+
     def __init__(self, model: type[Model_co], session: AsyncSession) -> None:
+        """Remember ORM model class and request-scoped session."""
         self.model = model
         self.session = session
 

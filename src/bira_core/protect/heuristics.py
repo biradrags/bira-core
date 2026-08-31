@@ -1,0 +1,94 @@
+"""Cheap abuse heuristics: /start dedupe and bot-likeness scoring."""
+
+from __future__ import annotations
+
+import time
+from collections.abc import Callable
+from typing import Any
+
+__all__ = ["StartDeduper"]
+
+
+class StartDeduper:
+    """Suppress duplicate /start within a sliding time window."""
+
+    def __init__(
+        self,
+        window_s: int,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        """Remember last /start timestamp per user for window_s seconds."""
+        self._window = window_s
+        self._clock = clock
+        self._last: dict[int, float] = {}
+
+    def is_duplicate(self, user_id: int) -> bool:
+        """True when the same user_id started inside the dedupe window."""
+        now = self._clock()
+        last = self._last.get(user_id)
+        if last is not None and now - last < self._window:
+            return True
+        self._last[user_id] = now
+        return False
+
+
+def _is_likely_bot_cls() -> type:
+    from aiogram import types
+    from aiogram.filters import Filter
+
+    class IsLikelyBot(Filter):
+        """True when the sender scores at or above threshold on bot-likeness.
+
+        Признаки слабые: человек без username, с новым id и не-ru локалью
+        наберёт тот же score. Годится как вход в мягкий режим (капча, лимит),
+        не как единственный гейт на блокировку. Чтобы пропускать только
+        похожих на людей - инвертировать фильтр: ``~IsLikelyBot()``.
+        """
+
+        def __init__(
+            self,
+            *,
+            threshold: int = 3,
+            score_no_username: int = 1,
+            score_premium: int = -2,
+            score_new_id: int = 1,
+            score_non_ru: int = 1,
+            new_id_threshold: int = 8_000_000_000,
+        ) -> None:
+            """Remember scoring weights and the cutoff for a fresh user id."""
+            self._threshold = threshold
+            self._score_no_username = score_no_username
+            self._score_premium = score_premium
+            self._score_new_id = score_new_id
+            self._score_non_ru = score_non_ru
+            self._new_id_threshold = new_id_threshold
+
+        async def __call__(self, message: types.Message) -> bool:
+            """True when score reaches threshold; unknown sender is not a bot."""
+            user = message.from_user
+            if not user or user.is_bot:
+                return False
+            score = 0
+            if not user.username:
+                score += self._score_no_username
+            if user.is_premium:
+                score += self._score_premium
+            if user.id > self._new_id_threshold:
+                score += self._score_new_id
+            if user.language_code and user.language_code.lower() != "ru":
+                score += self._score_non_ru
+            return score >= self._threshold
+
+    return IsLikelyBot
+
+
+_is_likely_bot_cls_cache: type | None = None
+
+
+def __getattr__(name: str) -> Any:
+    global _is_likely_bot_cls_cache
+    if name == "IsLikelyBot":
+        if _is_likely_bot_cls_cache is None:
+            _is_likely_bot_cls_cache = _is_likely_bot_cls()
+        return _is_likely_bot_cls_cache
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

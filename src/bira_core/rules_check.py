@@ -131,6 +131,7 @@ def _iter_py(roots: list[str]) -> Iterator[Path]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """CLI entry: scan paths and print semantic rule violations."""
     args = argv if argv is not None else sys.argv
     roots = args[1:] or ["."]
     hits: list[tuple[str, Path, int, str]] = []

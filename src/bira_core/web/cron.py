@@ -1,3 +1,5 @@
+"""Fly cron middleware and port constant."""
+
 from __future__ import annotations
 
 import asyncio
@@ -10,21 +12,14 @@ from aiohttp.typedefs import Middleware
 
 logger = logging.getLogger(__name__)
 
+CRON_PORT = 8081  # отдельный порт для внутренних cron-вызовов, не публикуется наружу
+
 _Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
 
 
-def _caller_app(request: web.Request) -> str | None:
-    raw = request.headers.get("fly-src")
-    if not raw:
-        return None
-    for part in raw.split(";"):
-        key, _, value = part.partition("=")
-        if key.strip() == "app":
-            return value.strip()
-    return None
-
-
 def fly_src_gate(allowed: frozenset[str]) -> Middleware:
+    """Reject cron requests whose fly-src app is not in the allowlist."""
+
     @web.middleware
     async def middleware(request: web.Request, handler: _Handler) -> web.StreamResponse:
         src = _caller_app(request)
@@ -43,6 +38,8 @@ _locks: dict[str, asyncio.Lock] = {}
 
 
 def cron_protocol() -> Middleware:
+    """Serialize concurrent runs per job name; always return JSON status."""
+
     @web.middleware
     async def middleware(request: web.Request, handler: _Handler) -> web.StreamResponse:
         name = request.match_info.get("job") or request.path.lstrip("/")
@@ -69,3 +66,14 @@ def cron_protocol() -> Middleware:
             return web.json_response({"job": name, "status": "ok", "took_ms": took_ms})
 
     return middleware
+
+
+def _caller_app(request: web.Request) -> str | None:
+    raw = request.headers.get("fly-src")
+    if not raw:
+        return None
+    for part in raw.split(";"):
+        key, _, value = part.partition("=")
+        if key.strip() == "app":
+            return value.strip()
+    return None

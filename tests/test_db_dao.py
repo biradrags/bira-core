@@ -1,6 +1,9 @@
+import pytest
 from sqlalchemy.orm import Mapped, mapped_column
 
 from bira_core.db import Base, BaseDAO
+
+pytestmark = pytest.mark.xdist_group(name="postgres")
 
 
 class Thing(Base):

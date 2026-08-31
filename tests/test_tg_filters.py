@@ -1,4 +1,4 @@
-from bira_core.tg import IsSuperAdmin, is_superadmin
+from bira_core.tgbot import IsSuperAdmin, is_superadmin
 
 
 def test_predicate() -> None:

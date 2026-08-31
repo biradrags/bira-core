@@ -2,21 +2,31 @@
 
 from typing import Any
 
-from bira_core.log import RedactionFilter, setup_logging
+from bira_core.log import (
+    LogfmtFormatter,
+    ProbeAccessFilter,
+    RedactionFilter,
+    setup_logging,
+)
 
 __all__: list[str] = [
+    "CRON_PORT",
     "Alerts",
     "Base",
     "BaseDAO",
     "DbDsn",
     "DbProvider",
     "IsSuperAdmin",
+    "LogfmtFormatter",
     "MessageSender",
     "NotifierProvider",
+    "ProbeAccessFilter",
     "RedactionFilter",
     "RedisProvider",
+    "attach_cron_site",
     "build_url",
     "create_app",
+    "create_cron_app",
     "cron_protocol",
     "fly_src_gate",
     "is_superadmin",
@@ -33,12 +43,15 @@ _EXPORTS: dict[str, tuple[str, str]] = {
     "DbDsn": ("bira_core.db", "DbDsn"),
     "Base": ("bira_core.db", "Base"),
     "BaseDAO": ("bira_core.db", "BaseDAO"),
-    "is_superadmin": ("bira_core.tg", "is_superadmin"),
-    "IsSuperAdmin": ("bira_core.tg", "IsSuperAdmin"),
-    "register_error_handlers": ("bira_core.tg", "register_error_handlers"),
+    "is_superadmin": ("bira_core.tgbot", "is_superadmin"),
+    "IsSuperAdmin": ("bira_core.tgbot", "IsSuperAdmin"),
+    "register_error_handlers": ("bira_core.tgbot", "register_error_handlers"),
     "safe_send": ("bira_core.notify", "safe_send"),
     "MessageSender": ("bira_core.notify", "MessageSender"),
     "Alerts": ("bira_core.notify", "Alerts"),
+    "CRON_PORT": ("bira_core.web", "CRON_PORT"),
+    "attach_cron_site": ("bira_core.web", "attach_cron_site"),
+    "create_cron_app": ("bira_core.web", "create_cron_app"),
     "fly_src_gate": ("bira_core.web", "fly_src_gate"),
     "cron_protocol": ("bira_core.web", "cron_protocol"),
     "create_app": ("bira_core.web", "create_app"),

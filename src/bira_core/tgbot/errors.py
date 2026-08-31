@@ -1,3 +1,5 @@
+"""Unhandled update error registration."""
+
 import logging
 
 from aiogram import Router
@@ -6,6 +8,17 @@ from aiogram.types.error_event import ErrorEvent
 from bira_core.notify import Alerts
 
 logger = logging.getLogger(__name__)
+
+__all__ = ["register_error_handlers"]
+
+
+def register_error_handlers(router: Router, *, alerts: Alerts | None = None) -> None:
+    """Log unhandled updates and optionally notify via Alerts."""
+
+    async def handler(error: ErrorEvent) -> None:
+        await _handle_error(error, alerts=alerts)
+
+    router.errors.register(handler)
 
 
 async def _handle_error(error: ErrorEvent, *, alerts: Alerts | None = None) -> None:
@@ -19,10 +32,3 @@ async def _handle_error(error: ErrorEvent, *, alerts: Alerts | None = None) -> N
     )
     if alerts is not None:
         await alerts.alert("bot", error.exception.__class__.__name__)
-
-
-def register_error_handlers(router: Router, *, alerts: Alerts | None = None) -> None:
-    async def handler(error: ErrorEvent) -> None:
-        await _handle_error(error, alerts=alerts)
-
-    router.errors.register(handler)

@@ -1,5 +1,73 @@
 # Changelog
 
+## v0.2.0 — фикс-раунд №2 (2026-08-31)
+
+Ревизия PR #1: шесть блокеров мержа плюс P1-хвост.
+
+### Breaking
+
+- `bira_core.kbd` — пакет (`kbd/wrap.py` + фасад); приватная `_wrap_indices` удалена, тесты ходят через публичную функцию.
+- `bira_core.maxbot.dialogs` — пакет (`errors`/`notifier`/`widgets`), зеркально `tgbot.dialogs`. `maxbot.notifier` и `maxbot.errors` как модули больше не существуют.
+- `bira_core.testing.providers` разбит на `providers_tg` / `providers_max`: MAX-провайдеры больше не требуют aiogram. Новый extra `testing`.
+- Удалены без потребителей: `chat_id_command`, `CHAT_ID_COMMAND`, `register_debug_commands`, `IsServiceChat`, `build_cancel_back_keyboard`, `ToMainMenuCD`, `CancelResetCD`, приватная `_cancel_reset`.
+- `create_cron_app(allowed=...)` — параметр обязателен; дефолт с именем внутреннего приложения убран.
+- `web.bootstrap._health` → публичный `web.health_handler`.
+- `IsLikelyBot` возвращает `True` для похожего на бота (было наоборот). Пропускать людей — `~IsLikelyBot()`. `new_id_threshold` поднят до 8 млрд.
+
+### Исправления
+
+- `bira-core[max]` был неустанавливаем: `bira_core.maxbot` тянул dishka. DI-символы ушли за ленивый фасад с подсказкой `[max,di]`.
+- MAX stale-intent был заглушкой-no-op с докстрингом «зеркало tgbot» — теперь рабочая реализация по канону `dialogs.md`.
+- Редакция логов: `OPENAI_KEY_RE` не ловил `sk-proj-…`/`sk-svcacct-…`; строковые значения в `extra` шли мимо KV-маскирования, из-за чего `?token=` в URL утекал.
+- `Alerts` и `MessageSender` больше не требуют aiogram (протокол вынесен в `notify/sender.py`).
+- `split_message` отдавал куски длиннее лимита при 100+ частях (пересчёт нумерации терял результат).
+- `ForumTopics`: пересоздание топика шло мимо per-key лока — две гонки создавали два топика и теряли сообщение.
+- `FloodGuard` и fallback `RateLimiter` росли без вытеснения; fallback теперь честно оконный.
+- CI: матрица `smoke-extras` падала на квотинге и не проверяла ничего; смоук-карта строится обходом пакета, а не руками.
+
+### Новое
+
+- `bira_core.tls.russian_trusted_ssl_context()` — доверие цепочке НУЦ Минцифры для ru-API (T-Bank и далее), вешается на запрос. `TBankClient` использует по умолчанию. Тест-страж падает за 60 дней до протухания бандла.
+
+## v0.2.0 — харвест (2026-08-28)
+
+Полный харвест дублей флота (Phase A + B). Один релиз перед первым бот-адоптером.
+
+### Breaking
+
+- `setup_logging(level, *, extra_patterns=(), extra_silence=())` — logfmt + probe-filter + silence-список (v0.1 тонкий StreamHandler заменён).
+- `setup_logging`: явный `level` выигрывает у env `LOG_LEVEL` (раньше env перебивал аргумент).
+- `aiogram` убран из core-зависимостей; TG-слой — extra `tgbot` (`pip install bira-core[tgbot]`). `dialogs` требует `aiogram>=3.20` явно.
+- `bira_core.tg` → `bira_core.tgbot`; `bira_core.dialogs` → `bira_core.tgbot.dialogs`; `MaxUser.tg_id` → `MaxUser.user_id`.
+- Нотифаеры: `safe_*` → `answer`/`warn`/`delete`/`ack` (вариант А); `delete_if_exists` — свободная функция.
+- `wrap_by_label_width(buttons, max_row_chars)` — донорская сигнатура; индексная версия — `_wrap_indices`.
+- `protect`: `RateLimiter.hit` → `allow`; `UsageGate` удалён (рецепт в README).
+- `cancel_reset` удалён из dialogs API; канон — `cancel_delete`.
+- `StaleIntentNotifier` удалён; `clear_stale_intent` берёт `bot` из события.
+- `redis`/`dt`: реализация в `redis/client.py`, `dt/timezone.py`; фасады в `__init__.py`.
+- `log/redaction`: движок в `log/_internal.py`.
+
+### Un-breaking
+
+- `make_redis_client(..., decode_responses=True)` — дефолт как у донора.
+
+### Новые модули
+
+- `db.alembic`, `DbTenantSettings`, `TimestampMixin`, `db.queries`
+- `dt`, `redis` (публичный), `kbd`, `tg.commands/keyboards/last/media_transfer`
+- `dialogs`, `maxbot`, `forum`, `payments`, `protect` (L1–L4)
+- `notify.delivery`, `send_bulk`, `split_message`
+- `testing.db` (xdist lock, rollback/savepoint sessions)
+
+### web
+
+- `CRON_PORT`, `attach_cron_site`, `create_cron_app` (фикс `_cron_runner` до `.start()`).
+
+### Адаптации по донорам
+
+- TBank: только `hmac.compare_digest`; идемпотентный переход статуса в донорах ботов (Phase 0).
+- `media_transfer`: guard `Path(filename).name` против path traversal.
+
 ## v0.1.0 (draft)
 
 ### log/

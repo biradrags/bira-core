@@ -1,15 +1,20 @@
+"""Ops alert channel to Telegram."""
+
 from __future__ import annotations
 
 import logging
 import time
 from collections.abc import Callable
 
-from bira_core.notify.send import MessageSender
+from bira_core.log.redaction import redact_log_message
+from bira_core.notify.sender import MessageSender
 
 logger = logging.getLogger(__name__)
 
 
 class Alerts:
+    """Deduped owner Telegram alerts with optional urgent mention."""
+
     def __init__(
         self,
         sender: MessageSender,
@@ -19,6 +24,7 @@ class Alerts:
         urgent_mention: str = "",
         now: Callable[[], float] = time.monotonic,
     ) -> None:
+        """Bind sender, owner chat, dedupe window, and urgent mention."""
         self._sender = sender
         self._owner_chat_id = owner_chat_id
         self._window_s = window_s
@@ -33,6 +39,7 @@ class Alerts:
         *,
         urgent: bool = False,
     ) -> None:
+        """Log and DM owner; suppress repeats of the same kind within window."""
         now = self._now()
         last = self._last.get(kind)
         if last is not None and now - last < self._window_s:
@@ -42,7 +49,7 @@ class Alerts:
         log = logger.error if urgent else logger.info
         log("alert %s", kind, extra={"text": text[:500]})
         try:
-            body = f"[{kind}] {text}"[:4000]
+            body = redact_log_message(f"[{kind}] {text}"[:4000])
             if urgent and self._urgent_mention:
                 body = f"{body} {self._urgent_mention}"
             await self._sender.send_message(self._owner_chat_id, body)
