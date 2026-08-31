@@ -22,7 +22,7 @@ def test_openai_key_masked_in_bare_text(key: str) -> None:
 def test_query_token_masked_inside_extra_value() -> None:
     """Канон велит логировать через extra=, значит защита обязана быть и там."""
     fields = redact_extra(
-        {"url": "https://api.example.com/hook?token=abcdef1234secret"}
+        {"url": "https://api.example.com/hook?token=abcdef1234secret"}  # gitleaks:allow
     )
 
     assert "abcdef1234secret" not in fields["url"]
