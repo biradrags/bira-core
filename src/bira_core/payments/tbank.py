@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import ssl
 from collections.abc import Mapping
 from typing import Any, cast
 
@@ -14,6 +15,8 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential_jitter,
 )
+
+from bira_core.tls import russian_trusted_ssl_context
 
 
 def build_tbank_token(params: Mapping[str, Any], password: str) -> str:
@@ -56,12 +59,19 @@ class TBankClient:
         password: str,
         api_base_url: str,
         session: aiohttp.ClientSession,
+        ssl_context: ssl.SSLContext | None = None,
     ) -> None:
-        """Store terminal credentials and shared aiohttp session."""
+        """Store terminal credentials, shared session and TLS trust for T-Bank.
+
+        По умолчанию - контекст с НУЦ Минцифры: его корня нет в системном bundle
+        образа. Контекст вешается на запрос, поэтому общая сессия бота не
+        начинает доверять НУЦ для остальных хостов.
+        """
         self._terminal_key = terminal_key
         self._password = password
         self._api_base_url = api_base_url.rstrip("/")
         self._session = session
+        self._ssl_context = ssl_context or russian_trusted_ssl_context()
 
     @retry(
         stop=stop_after_attempt(2),
@@ -78,6 +88,7 @@ class TBankClient:
                 f"{self._api_base_url}{path}",
                 json=body,
                 timeout=aiohttp.ClientTimeout(total=10),
+                ssl=self._ssl_context,
             ) as resp:
                 data = cast(dict[str, Any], await resp.json())
         except (aiohttp.ClientError, TimeoutError) as exc:
