@@ -2,8 +2,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from bira_core.kbd import _wrap_indices
 from bira_core.tgbot.dialogs.widgets import AdaptiveGroup, ProgressSteps
+
+
+class Btn:
+    def __init__(self, text: str) -> None:
+        self.text = text
 
 
 @pytest.mark.asyncio
@@ -13,15 +17,13 @@ async def test_progress_steps_render_text() -> None:
     assert text == "🟥🟥⬜⬜ 2/4"
 
 
-def test_adaptive_group_wrap_matches_kbd() -> None:
-    labels = ["A", "B", "long label here"]
-    expected = _wrap_indices(labels, row_chars=10)
-
-    class Btn:
-        def __init__(self, text: str) -> None:
-            self.text = text
-
-    buttons = [Btn(t) for t in labels]
+def test_adaptive_group_wraps_by_label_width() -> None:
+    buttons = [Btn("A"), Btn("B"), Btn("long label here")]
     group = AdaptiveGroup(*buttons, max_row_chars=10)
+
     wrapped = group._wrap_kbd(buttons)
-    assert len(wrapped) == len(expected)
+
+    assert [[b.text for b in row] for row in wrapped] == [
+        ["A", "B"],
+        ["long label here"],
+    ]

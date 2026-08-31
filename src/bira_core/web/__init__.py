@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from bira_core.web.bootstrap import attach_cron_site, create_cron_app
+from bira_core.web.bootstrap import attach_cron_site, create_cron_app, health_handler
 from bira_core.web.cron import CRON_PORT, cron_protocol, fly_src_gate
 
 __all__ = [
@@ -12,6 +12,7 @@ __all__ = [
     "create_cron_app",
     "cron_protocol",
     "fly_src_gate",
+    "health_handler",
     "run_polling",
     "run_webhook",
 ]

@@ -1,16 +1,13 @@
+from aiogram.filters.callback_data import CallbackData
+
 from bira_core.tgbot.keyboards import (
-    ToMainMenuCD,
-    build_cancel_back_keyboard,
     build_tbank_payment_keyboard,
     single_button_keyboard,
 )
 
 
-def test_build_cancel_back_keyboard() -> None:
-    markup = build_cancel_back_keyboard()
-    texts = [btn.text for row in markup.inline_keyboard for btn in row]
-    assert "🔙 Назад" in texts
-    assert "✖️ Отмена" in texts
+class SampleCD(CallbackData, prefix="sample"):
+    pass
 
 
 def test_build_tbank_payment_keyboard() -> None:
@@ -21,6 +18,6 @@ def test_build_tbank_payment_keyboard() -> None:
 
 
 def test_single_button_keyboard() -> None:
-    markup = single_button_keyboard("Go", ToMainMenuCD())
+    markup = single_button_keyboard("Go", SampleCD())
     assert len(markup.inline_keyboard) == 1
     assert markup.inline_keyboard[0][0].text == "Go"

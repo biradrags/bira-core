@@ -17,10 +17,14 @@ if TYPE_CHECKING:
 def create_cron_app(
     routes: Sequence[RouteDef],
     *,
-    allowed: frozenset[str] = frozenset({"bira-cron"}),
+    allowed: frozenset[str],
     container: AsyncContainer | None = None,
 ) -> web.Application:
-    """aiohttp app for Fly cron with src gate; optional Dishka when container is set."""
+    """aiohttp app for Fly cron with src gate; optional Dishka when container is set.
+
+    ``allowed`` - имена Fly-приложений, которым разрешено дёргать cron. Без
+    дефолта намеренно: тихий дефолт превращается в дыру у того, кто его не заметил.
+    """
     app = web.Application(middlewares=[fly_src_gate(allowed), cron_protocol()])
     app.router.add_routes(routes)
     if container is not None:
@@ -52,5 +56,6 @@ def attach_cron_site(
     app.on_cleanup.append(_stop)
 
 
-async def _health(_: web.Request) -> web.Response:
+async def health_handler(_: web.Request) -> web.Response:
+    """Liveness probe: always 200 with a static JSON body."""
     return web.json_response({"status": "ok"})

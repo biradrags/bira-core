@@ -12,7 +12,7 @@ from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_applicati
 from aiohttp import web
 from aiohttp.web_routedef import RouteDef
 
-from bira_core.web.bootstrap import _health
+from bira_core.web.bootstrap import health_handler
 
 if TYPE_CHECKING:
     from dishka import AsyncContainer
@@ -31,7 +31,7 @@ def create_app(
 ) -> web.Application:
     """aiohttp app with /health, webhook handler, and optional Dishka."""
     app = web.Application()
-    app.router.add_get("/health", _health)
+    app.router.add_get("/health", health_handler)
     for route in extra_routes:
         app.router.add_route(route.method, route.path, route.handler)
 

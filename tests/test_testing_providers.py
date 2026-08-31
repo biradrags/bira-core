@@ -5,7 +5,7 @@ from dishka import make_async_container
 
 import bira_core.testing
 from bira_core.testing import MockBotProvider
-from bira_core.testing.providers import MockMessageManagerProvider
+from bira_core.testing.providers_tg import MockMessageManagerProvider
 
 
 async def test_mock_bot_provider_uses_mock_session() -> None:

@@ -10,7 +10,7 @@ from bira_core.auth import is_superadmin as _is_superadmin
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["IsServiceChat", "IsSuperAdmin", "is_superadmin"]
+__all__ = ["IsSuperAdmin", "is_superadmin"]
 
 
 def is_superadmin(user_id: int, superusers: Collection[int]) -> bool:
@@ -31,20 +31,4 @@ class IsSuperAdmin(BaseFilter):
             return False
         result = _is_superadmin(message.from_user.id, self._superusers)
         logger.debug("IsSuperAdmin", extra={"result": result})
-        return result
-
-
-class IsServiceChat(BaseFilter):
-    """Pass updates only from the configured service chat."""
-
-    def __init__(self, service_chat_id: int) -> None:
-        """Remember the ops/service chat id to match against."""
-        self._service_chat_id = service_chat_id
-
-    async def __call__(self, message: Message) -> bool:
-        """True when message.chat.id equals service_chat_id."""
-        result = int(message.chat.id) == int(self._service_chat_id)
-        logger.debug(
-            "IsServiceChat", extra={"chat_id": message.chat.id, "result": result}
-        )
         return result
