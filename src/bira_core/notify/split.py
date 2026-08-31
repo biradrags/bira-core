@@ -1,5 +1,7 @@
 """Plain-text message splitter with numbering."""
 
+_MAX_RENUMBER_PASSES = 4
+
 
 def split_message(text: str, limit: int = 4096, *, numbering: bool = True) -> list[str]:
     """Plain text; с parse_mode=HTML не сочетать."""
@@ -10,14 +12,14 @@ def split_message(text: str, limit: int = 4096, *, numbering: bool = True) -> li
         effective = limit - len("[99/99] ")
     parts = _split_raw(text, effective)
     if numbering and len(parts) > 1:
-        while True:
+        # Префикс растёт вместе с разрядностью номера, а от него зависит бюджет
+        # куска: пересчитываем до стабильной пары (бюджет, число частей).
+        for _ in range(_MAX_RENUMBER_PASSES):
             total = len(parts)
             prefix_len = len(f"[{total}/{total}] ")
-            new_effective = limit - prefix_len
-            new_parts = _split_raw(text, new_effective)
-            if len(new_parts) == total:
+            parts = _split_raw(text, limit - prefix_len)
+            if len(parts) == total:
                 break
-            parts = new_parts
         total = len(parts)
         parts = [f"[{i + 1}/{total}] {part}" for i, part in enumerate(parts)]
     return parts

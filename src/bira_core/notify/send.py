@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Protocol, runtime_checkable
+from typing import Any
 
 from aiogram import Bot
 from aiogram.enums import ParseMode
@@ -13,21 +13,13 @@ from aiogram.types import LinkPreviewOptions, Message
 
 from bira_core.notify.classifier import classify_aiogram
 from bira_core.notify.delivery import DeliveryResult
+from bira_core.notify.sender import MessageSender
 
 logger = logging.getLogger(__name__)
 
 _MAX_FLOOD_WAIT_SLEEP = 30
 
-
-@runtime_checkable
-class MessageSender(Protocol):
-    """Anything that can send_message(chat_id, text) for Alerts wiring."""
-
-    async def send_message(
-        self, chat_id: int, text: str, **kwargs: Any
-    ) -> Message | None:
-        """Deliver text to chat_id; return Message or None."""
-        ...
+__all__ = ["MessageSender", "deliver", "safe_send"]
 
 
 async def safe_send(

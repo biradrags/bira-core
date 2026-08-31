@@ -3,7 +3,7 @@
 from dishka import Provider, provide
 
 from bira_core.notify.alerts import Alerts
-from bira_core.notify.send import MessageSender
+from bira_core.notify.sender import MessageSender
 
 
 class NotifierProvider(Provider):

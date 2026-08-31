@@ -7,7 +7,7 @@ import time
 from collections.abc import Callable
 
 from bira_core.log.redaction import redact_log_message
-from bira_core.notify.send import MessageSender
+from bira_core.notify.sender import MessageSender
 
 logger = logging.getLogger(__name__)
 
