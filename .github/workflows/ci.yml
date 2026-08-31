@@ -70,16 +70,17 @@ jobs:
           - payments
           - protect
           - alembic
+          - testing
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - name: Install package with single extra
         run: |
-          EXTRAS=""
-          if [ "${{ matrix.extra }}" != "core" ]; then
-            EXTRAS="--extra ${{ matrix.extra }}"
-          fi
           uv venv /tmp/smoke-venv
-          uv pip install --python /tmp/smoke-venv/bin/python -e ".${EXTRAS}"
+          if [ "${{ matrix.extra }}" = "core" ]; then
+            uv pip install --python /tmp/smoke-venv/bin/python -e .
+          else
+            uv pip install --python /tmp/smoke-venv/bin/python -e ".[${{ matrix.extra }}]"
+          fi
       - name: Run smoke
         run: /tmp/smoke-venv/bin/python scripts/smoke_extra.py ${{ matrix.extra }}
