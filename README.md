@@ -21,8 +21,14 @@ uv add "bira-core[db,di,redis,tgbot,dialogs,protect] @ git+https://github.com/bi
 | `di` | dishka | `bira_core.di` |
 | `protect` | redis (опционально для L2) | `bira_core.protect` |
 | `payments` | tenacity | `bira_core.payments` |
+| `testing` | dishka, pytest | `bira_core.testing` (платформа — своим extra: `[testing,tgbot]`, `[testing,max]`, `[testing,db]`) |
 
-Core без extras: `log`, `dt`, `kbd`, `db` (частично), `web` (aiohttp), `forum`, `protect` L1. `bira_core.redis` импортируется и без extras (ленивый фасад), но сами функции (`make_redis_client` и т.п.) требуют `[redis]`.
+Контракт установки, проверяемый в CI на каждом extra отдельно:
+
+- **Кросс-платформенные фасады импортируются при голой установке** — `log`, `dt`, `kbd`, `tls`, `auth`, `web`, `forum`, `notify` (включая `Alerts`), `protect`, `db`, `redis`, `di`, `testing`. Функция, которой нужна отсутствующая зависимость, кидает `ImportError` с подсказкой, какой extra ставить.
+- **Платформенные фасады требуют свой SDK**: `bira_core.tgbot` → `[tgbot]`, `bira_core.maxbot` → `[max]`, `bira_core.payments` → `[payments]`. Без него import падает — но тоже с подсказкой, а не голым `ModuleNotFoundError`.
+
+MAX-only бот ставит `bira-core[max]` и aiogram не тянет.
 
 `maxo` ставится с PyPI; потребителю на форке достаточно объявить git-source:
 
@@ -39,7 +45,8 @@ maxo = { git = "https://github.com/biradrags/maxo", rev = "..." }
 |-------|------------|
 | `bira_core.tgbot` | commands, keyboards, filters, media_transfer, errors |
 | `bira_core.tgbot.dialogs` | starters, widgets, stale-intent, notifier |
-| `bira_core.maxbot` | polling, notifier, dialogs, filters, di |
+| `bira_core.maxbot` | polling, filters, web, di |
+| `bira_core.maxbot.dialogs` | widgets, stale-intent, notifier |
 
 Общие слои:
 
@@ -50,6 +57,7 @@ maxo = { git = "https://github.com/biradrags/maxo", rev = "..." }
 - `notify` — `safe_send` (обычный код), `deliver`/`DeliveryResult` (рассылки; категории failure закрыты enum)
 - `protect` — L1 in-memory `FloodGuard`, L2 Redis `RateLimiter.allow`, L4 heuristics
 - `forum` — `ForumTopics` + `ThreadStore` protocol
+- `tls` — `russian_trusted_ssl_context()` для ru-API за цепочкой НУЦ Минцифры
 - `payments` — T-Bank client
 - `testing` — mock DI, db fixtures (`rollback_session`, `savepoint_session`)
 
@@ -85,6 +93,22 @@ if not await rate_limiter.allow(f"action:{user_id}", limit=10, window_s=60):
 ```
 
 `RateLimiter(..., fail_open=True)` при недоступном Redis не блокирует трафик: каждая машина держит свой in-memory бюджет без общего окна (N×лимит, см. докстринг `bira_core.protect`).
+
+### ru-API: сертификат НУЦ Минцифры
+
+`securepay.tinkoff.ru` и другие ru-хосты отдают цепочку НУЦ, корня которой нет в системном
+bundle образа. Контекст вешается **на запрос**, не на общий connector, — иначе доверие к НУЦ
+расширится на все хосты, куда ходит бот.
+
+```python
+from bira_core.tls import russian_trusted_ssl_context
+
+async with session.post(url, json=body, ssl=russian_trusted_ssl_context()) as resp:
+    ...
+```
+
+`TBankClient` применяет его сам; переопределяется параметром `ssl_context`. Бандл едет внутри
+пакета, тест-страж падает за 60 дней до истечения — обновлять с `gosuslugi.ru/crt`.
 
 ## Development
 

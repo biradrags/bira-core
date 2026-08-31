@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased — фикс-раунд №2 (2026-08-31)
+
+Ревизия PR #1: шесть блокеров мержа плюс P1-хвост.
+
+### Breaking
+
+- `bira_core.kbd` — пакет (`kbd/wrap.py` + фасад); приватная `_wrap_indices` удалена, тесты ходят через публичную функцию.
+- `bira_core.maxbot.dialogs` — пакет (`errors`/`notifier`/`widgets`), зеркально `tgbot.dialogs`. `maxbot.notifier` и `maxbot.errors` как модули больше не существуют.
+- `bira_core.testing.providers` разбит на `providers_tg` / `providers_max`: MAX-провайдеры больше не требуют aiogram. Новый extra `testing`.
+- Удалены без потребителей: `chat_id_command`, `CHAT_ID_COMMAND`, `register_debug_commands`, `IsServiceChat`, `build_cancel_back_keyboard`, `ToMainMenuCD`, `CancelResetCD`, приватная `_cancel_reset`.
+- `create_cron_app(allowed=...)` — параметр обязателен; дефолт с именем внутреннего приложения убран.
+- `web.bootstrap._health` → публичный `web.health_handler`.
+- `IsLikelyBot` возвращает `True` для похожего на бота (было наоборот). Пропускать людей — `~IsLikelyBot()`. `new_id_threshold` поднят до 8 млрд.
+
+### Исправления
+
+- `bira-core[max]` был неустанавливаем: `bira_core.maxbot` тянул dishka. DI-символы ушли за ленивый фасад с подсказкой `[max,di]`.
+- MAX stale-intent был заглушкой-no-op с докстрингом «зеркало tgbot» — теперь рабочая реализация по канону `dialogs.md`.
+- Редакция логов: `OPENAI_KEY_RE` не ловил `sk-proj-…`/`sk-svcacct-…`; строковые значения в `extra` шли мимо KV-маскирования, из-за чего `?token=` в URL утекал.
+- `Alerts` и `MessageSender` больше не требуют aiogram (протокол вынесен в `notify/sender.py`).
+- `split_message` отдавал куски длиннее лимита при 100+ частях (пересчёт нумерации терял результат).
+- `ForumTopics`: пересоздание топика шло мимо per-key лока — две гонки создавали два топика и теряли сообщение.
+- `FloodGuard` и fallback `RateLimiter` росли без вытеснения; fallback теперь честно оконный.
+- CI: матрица `smoke-extras` падала на квотинге и не проверяла ничего; смоук-карта строится обходом пакета, а не руками.
+
+### Новое
+
+- `bira_core.tls.russian_trusted_ssl_context()` — доверие цепочке НУЦ Минцифры для ru-API (T-Bank и далее), вешается на запрос. `TBankClient` использует по умолчанию. Тест-страж падает за 60 дней до протухания бандла.
+
 ## v0.2.0 (2026-08-28)
 
 Полный харвест дублей флота (Phase A + B). Один релиз перед первым бот-адоптером.
