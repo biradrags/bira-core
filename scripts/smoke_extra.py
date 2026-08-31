@@ -17,6 +17,7 @@ SMOKES: dict[str, list[str]] = {
         "bira_core.auth",
         "bira_core.protect.flood_guard",
         "bira_core.protect.heuristics",
+        "bira_core.redis",
     ],
     "db": [
         "bira_core.db",

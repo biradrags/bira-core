@@ -22,7 +22,7 @@ uv add "bira-core[db,di,redis,tgbot,dialogs,protect] @ git+https://github.com/bi
 | `protect` | redis (опционально для L2) | `bira_core.protect` |
 | `payments` | tenacity | `bira_core.payments` |
 
-Core без extras: `log`, `dt`, `kbd`, `db` (частично), `web` (aiohttp), `forum`, `redis` API, `protect` L1.
+Core без extras: `log`, `dt`, `kbd`, `db` (частично), `web` (aiohttp), `forum`, `protect` L1. `bira_core.redis` импортируется и без extras (ленивый фасад), но сами функции (`make_redis_client` и т.п.) требуют `[redis]`.
 
 `maxo` ставится с PyPI; потребителю на форке достаточно объявить git-source:
 
