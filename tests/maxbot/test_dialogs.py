@@ -6,7 +6,10 @@ pytest.importorskip("maxo")
 
 from dishka import make_async_container
 
-from bira_core.testing.providers import MockMaxDpProvider, MockMaxMessageManagerProvider
+from bira_core.testing.providers_max import (
+    MockMaxDpProvider,
+    MockMaxMessageManagerProvider,
+)
 
 
 @pytest.mark.asyncio

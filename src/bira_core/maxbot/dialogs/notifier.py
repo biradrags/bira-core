@@ -8,7 +8,7 @@ from maxo.bot import Bot
 from maxo.dialogs import DialogManager, ShowMode
 from maxo.enums import TextFormat
 from maxo.errors import MaxBotBadRequestError
-from maxo.routing.updates import MessageCallback, MessageCreated
+from maxo.types import MessageCallback, MessageCreated
 
 from bira_core._tasks import DelayedDeleter
 from bira_core.maxbot._errors import is_message_gone
