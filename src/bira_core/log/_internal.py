@@ -41,7 +41,8 @@ PREFIX_LEN = 4
 SUFFIX_LEN = 4
 MASK = "***"
 
-OPENAI_KEY_RE = re.compile(r"sk-[a-zA-Z0-9]{20,}")
+# Дефис внутри обязателен: нынешние ключи - sk-proj-…/sk-svcacct-…
+OPENAI_KEY_RE = re.compile(r"sk-[a-zA-Z0-9_-]{20,}")
 BEARER_RE = re.compile(r"Bearer\s+\S+", re.IGNORECASE)
 TG_TOKEN_RE = re.compile(r"\d{6,12}:[A-Za-z0-9_-]{30,}")
 DSN_RE = re.compile(
@@ -96,7 +97,7 @@ def redact(obj: Any) -> Any:
     if isinstance(obj, list):
         return [redact(x) for x in obj]
     if isinstance(obj, str):
-        return redact_string(obj)
+        return redact_log_message(obj)
     return obj
 
 
@@ -110,7 +111,9 @@ def redact_extra(fields: dict[str, Any]) -> dict[str, Any]:
         elif not isinstance(value, str) or _is_countable(value):
             result[key] = value
         else:
-            result[key] = redact_string(value)
+            # Полный редактор, а не redact_string: канон требует писать через
+            # extra=, значит generic key=value и query-токены живут именно тут.
+            result[key] = redact_log_message(value)
     return result
 
 
