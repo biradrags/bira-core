@@ -5,7 +5,7 @@ Fleet plumbing for aiogram/MAX bots: logging, web bootstrap, cron gates, DAO, no
 ## Install
 
 ```bash
-uv add "bira-core[db,di,redis,tgbot,dialogs,protect] @ git+https://github.com/biradrags/bira-core@v0.2.0"
+uv add "bira-core[db,di,redis,tgbot,dialogs,protect] @ git+https://github.com/biradrags/bira-core@v0.2.1"
 ```
 
 ### Extras
@@ -51,12 +51,12 @@ maxo = { git = "https://github.com/biradrags/maxo", rev = "..." }
 Общие слои:
 
 - `log` — logfmt `setup_logging`, redaction (`LOG_LEVEL` из env только при `level=None`)
-- `db` — `build_url`, `BaseDAO`, alembic helpers, query builders
+- `db` — `build_url`, `BaseDAO`, alembic helpers, query builders; `Base` с флотовой конвенцией имён ограничений (словарь отдельно — `NAMING_CONVENTION`, для проектов с одним отличающимся правилом)
 - `dt` — timezone helpers
 - `web` — cron app, `attach_cron_site`, `CRON_PORT=8081`; `create_app`/`run_polling` — extra `tgbot`
 - `notify` — `safe_send` (обычный код), `deliver`/`DeliveryResult` (рассылки; категории failure закрыты enum)
 - `protect` — L1 in-memory `FloodGuard`, L2 Redis `RateLimiter.allow`, L4 heuristics
-- `forum` — `ForumTopics` + `ThreadStore` protocol
+- `forum` — `ForumTopics` + `ThreadStore` protocol; `is_topic_gone(exc)` отдельно, для тех, кто топик не пересоздаёт
 - `tls` — `russian_trusted_ssl_context()` для ru-API за цепочкой НУЦ Минцифры
 - `payments` — T-Bank client
 - `testing` — mock DI, db fixtures (`rollback_session`, `savepoint_session`)
