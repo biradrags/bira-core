@@ -1,9 +1,10 @@
+import sys
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from aiogram.exceptions import TelegramBadRequest
 
-from bira_core.forum import TOPIC_GONE_MARKERS, ForumTopics
+from bira_core.forum import TOPIC_GONE_MARKERS, ForumTopics, is_topic_gone
 
 
 class MemoryThreadStore:
@@ -86,3 +87,52 @@ async def test_send_recovers_on_deleted_topic() -> None:
     assert await store.get_thread_id("user:1") == 11
     assert bot.create_forum_topic.await_count == 1
     assert bot.send_message.await_count == 2
+
+
+@pytest.mark.parametrize(
+    "message",
+    ["thread not found", "message thread not found", "TOPIC_DELETED", "topic_deleted"],
+)
+def test_is_topic_gone_covers_every_marker(message: str) -> None:
+    exc = TelegramBadRequest(method="sendMessage", message=message)
+    assert is_topic_gone(exc) is True
+
+
+def test_is_topic_gone_false_for_other_errors() -> None:
+    other = TelegramBadRequest(method="sendMessage", message="chat not found")
+    assert is_topic_gone(other) is False
+    assert is_topic_gone(RuntimeError("thread not found")) is False
+
+
+def test_is_topic_gone_false_without_aiogram(monkeypatch: pytest.MonkeyPatch) -> None:
+    """MAX-only установка без aiogram: не ImportError, а честное «не TG-топик»."""
+    monkeypatch.setitem(sys.modules, "aiogram.exceptions", None)
+
+    assert is_topic_gone(RuntimeError("thread not found")) is False
+
+
+@pytest.mark.asyncio
+async def test_chat_id_argument_overrides_constructor() -> None:
+    """Форум свой на каждого владельца - чат приходит вызовом, не конструктором."""
+    bot = AsyncMock()
+    bot.create_forum_topic.return_value.message_thread_id = 5
+    store = MemoryThreadStore()
+    forum = ForumTopics(bot, -1001, store)
+
+    await forum.send("owner:7:lead:1", "hi", topic_name="Lead", chat_id=-1002)
+
+    assert bot.create_forum_topic.await_args.kwargs["chat_id"] == -1002
+    assert bot.send_message.await_args.args[0] == -1002
+
+
+@pytest.mark.asyncio
+async def test_constructor_chat_used_when_argument_omitted() -> None:
+    bot = AsyncMock()
+    bot.create_forum_topic.return_value.message_thread_id = 5
+    store = MemoryThreadStore()
+    forum = ForumTopics(bot, -1001, store)
+
+    await forum.send("lead:1", "hi", topic_name="Lead")
+
+    assert bot.create_forum_topic.await_args.kwargs["chat_id"] == -1001
+    assert bot.send_message.await_args.args[0] == -1001

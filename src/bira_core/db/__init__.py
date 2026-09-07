@@ -3,6 +3,7 @@
 from typing import Any
 
 __all__ = [
+    "NAMING_CONVENTION",
     "Base",
     "BaseDAO",
     "DbDsn",
@@ -29,14 +30,13 @@ def __getattr__(name: str) -> Any:
             e.add_note("pip install bira-core[db]")
             raise
         return getattr(url_mod, name)
-    if name == "Base":
+    if name in {"Base", "NAMING_CONVENTION"}:
         try:
-            from bira_core.db.base import Base
-
-            return Base
+            from bira_core.db import base as base_mod
         except ImportError as e:
             e.add_note("pip install bira-core[db]")
             raise
+        return getattr(base_mod, name)
     if name == "BaseDAO":
         try:
             from bira_core.db.dao import BaseDAO
