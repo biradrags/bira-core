@@ -1,3 +1,4 @@
+import pytest
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -27,3 +28,13 @@ def test_base_metadata_applies_convention() -> None:
     names = {c.name for c in Probe.__table__.constraints}
     assert "pk__convention_probe" in names
     assert "uq__convention_probe__chat_id" in names
+
+
+def test_mutating_exported_dict_does_not_leak_into_base(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setitem(NAMING_CONVENTION, "fk", "leaked_%(table_name)s")
+
+    assert Base.metadata.naming_convention["fk"] == (
+        "fk__%(table_name)s__%(column_0_name)s__%(referred_table_name)s"
+    )

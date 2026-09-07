@@ -1,3 +1,4 @@
+import sys
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -100,6 +101,13 @@ def test_is_topic_gone_covers_every_marker(message: str) -> None:
 def test_is_topic_gone_false_for_other_errors() -> None:
     other = TelegramBadRequest(method="sendMessage", message="chat not found")
     assert is_topic_gone(other) is False
+    assert is_topic_gone(RuntimeError("thread not found")) is False
+
+
+def test_is_topic_gone_false_without_aiogram(monkeypatch: pytest.MonkeyPatch) -> None:
+    """MAX-only установка без aiogram: не ImportError, а честное «не TG-топик»."""
+    monkeypatch.setitem(sys.modules, "aiogram.exceptions", None)
+
     assert is_topic_gone(RuntimeError("thread not found")) is False
 
 

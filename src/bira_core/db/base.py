@@ -23,4 +23,6 @@ NAMING_CONVENTION: dict[str, str] = {
 class Base(DeclarativeBase):
     """Fleet-wide SQLAlchemy declarative registry."""
 
-    metadata = MetaData(naming_convention=NAMING_CONVENTION)
+    # Копия: SQLAlchemy держит ссылку и применяет конвенцию лениво, при привязке
+    # ограничения - правка экспортированного словаря не должна утекать сюда.
+    metadata = MetaData(naming_convention=dict(NAMING_CONVENTION))

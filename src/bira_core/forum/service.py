@@ -152,9 +152,13 @@ def is_topic_gone(exc: BaseException) -> bool:
     """True когда Telegram сказал, что топика больше нет.
 
     Публичная: распознать «топик удалён» нужно и тем, кто его не пересоздаёт,
-    а скипает или гасит доставку.
+    а скипает или гасит доставку. Без aiogram в процессе TelegramBadRequest
+    взяться неоткуда - ответ False, а не ImportError.
     """
-    from aiogram.exceptions import TelegramBadRequest
+    try:
+        from aiogram.exceptions import TelegramBadRequest
+    except ImportError:
+        return False
 
     if not isinstance(exc, TelegramBadRequest):
         return False
