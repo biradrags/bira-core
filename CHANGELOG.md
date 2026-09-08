@@ -1,5 +1,39 @@
 # Changelog
 
+## v0.3.0 (2026-09-08)
+
+Фасады перестают врать статике. v0.2.2 залатал симптом зеркалами под `TYPE_CHECKING`;
+здесь убрана причина — ленивые `__getattr__`, которые харвест поставил ради контракта
+«любой фасад импортируется без extras». Контракт не стоил своей цены: фасад `db` без
+SQLAlchemy импортировался, но использовать его было нельзя, а платили за это стёртыми
+типами у каждого адоптера.
+
+### Breaking — пути импорта
+
+Правило одно: фасад eagerly ре-экспортирует то, что даёт его собственный extra; символу,
+которому нужен ещё один extra, — импорт из подмодуля.
+
+| Было | Стало |
+|---|---|
+| `bira_core.notify` → `deliver`, `safe_send` | `bira_core.notify.send` |
+| `bira_core.notify` → `classify_aiogram` | `bira_core.notify.classifier` |
+| `bira_core.web` → `create_app`, `run_polling`, `run_webhook` | `bira_core.tgbot.web_bootstrap` |
+| `bira_core.di` → `DbProvider` / `RedisProvider` | `bira_core.di.db` / `bira_core.di.redis` |
+| `bira_core.protect` → `RateLimiter` | `bira_core.protect.rate_limit` |
+| `bira_core.protect` / `protect.heuristics` → `IsLikelyBot` | `bira_core.tgbot` / `bira_core.tgbot.filters` — это aiogram-фильтр, не кросс-платформенная эвристика |
+| `bira_core.maxbot` → `MaxBotProvider`, `create_max_dispatcher` | `bira_core.maxbot.di` |
+| `bira_core.testing` → всё | `bira_core.testing.db` / `.providers_tg` / `.providers_max` |
+| `bira_core` (корень) → 22 ленивых имени | фасад слоя; в корне остались четыре имени `log` |
+
+`import bira_core.db` / `.redis` / `.di` без своего extra теперь падает сразу, с подсказкой —
+там, где она и нужна.
+
+### Снято
+
+- `__getattr__` и `_EXPORTS` из девяти фасадов; зеркала `if TYPE_CHECKING` из v0.2.2;
+  `tests/test_facade_typing.py` — сторожить больше нечего. Правило держит
+  `test_extras_contract::test_modules_respect_import_allowlists`, который был и раньше.
+
 ## v0.2.2 (2026-09-08)
 
 Найдено при миграции metrikamedia: `py.typed` в пакете есть, но половина публичного API

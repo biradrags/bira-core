@@ -56,9 +56,10 @@ ATTR_CHECKS: dict[str, list[tuple[str, str]]] = {
     "di": [("bira_core.di", "warm_up")],
     "redis": [("bira_core.redis", "make_redis_client")],
     "tgbot": [
-        ("bira_core.web", "create_app"),
-        ("bira_core.notify", "safe_send"),
+        ("bira_core.tgbot.web_bootstrap", "create_app"),
+        ("bira_core.notify.send", "safe_send"),
         ("bira_core.tgbot", "cancel_command"),
+        ("bira_core.tgbot", "IsLikelyBot"),
     ],
     "dialogs": [("bira_core.tgbot.dialogs", "register_stale_intent")],
     "max": [
@@ -66,15 +67,20 @@ ATTR_CHECKS: dict[str, list[tuple[str, str]]] = {
         ("bira_core.maxbot", "register_stale_intent"),
     ],
     "payments": [("bira_core.payments", "TBankClient")],
-    "protect": [("bira_core.protect", "RateLimiter")],
+    "protect": [("bira_core.protect.rate_limit", "RateLimiter")],
     "alembic": [("bira_core.db", "run_migrations")],
     "testing": [],
 }
 
 
-# Платформенные фасады физически требуют свой SDK: без него import обязан падать
-# с подсказкой, а не молча. Остальные обязаны импортироваться при голой установке.
-PLATFORM_FACADES = {
+# Чистые фасады: без единого стороннего пакета, импортируются при голой установке.
+PURE_FACADES = ("log", "dt", "kbd", "tls", "auth", "web", "forum", "notify", "protect", "testing")
+
+# Фасад слоя импортируется ⇔ стоит его extra; без него - ImportError с подсказкой.
+EXTRA_FACADES = {
+    "db": "db",
+    "di": "di",
+    "redis": "redis",
     "tgbot": "tgbot",
     "maxbot": "max",
     "payments": "payments",
@@ -82,19 +88,11 @@ PLATFORM_FACADES = {
 
 
 def core_facades() -> list[str]:
-    """Кросс-платформенные фасады: обязаны импортироваться без единого extra."""
-    import bira_core
-
-    names = ["bira_core"]
-    names += [
-        f"bira_core.{info.name}"
-        for info in pkgutil.iter_modules(bira_core.__path__)
-        if not info.name.startswith("_") and info.name not in PLATFORM_FACADES
-    ]
-    return names
+    """Чистые фасады: обязаны импортироваться без единого extra."""
+    return ["bira_core"] + [f"bira_core.{name}" for name in PURE_FACADES]
 
 
-def check_platform_facade_hint(name: str, extra: str) -> None:
+def check_facade_hint(name: str, extra: str) -> None:
     """Без своего extra фасад обязан кидать ImportError с командой установки."""
     try:
         importlib.import_module(f"bira_core.{name}")
@@ -124,11 +122,11 @@ def main() -> int:
     for name in core_facades():
         importlib.import_module(name)
 
-    for name, required_extra in PLATFORM_FACADES.items():
+    for name, required_extra in EXTRA_FACADES.items():
         if required_extra == extra:
             importlib.import_module(f"bira_core.{name}")
         else:
-            check_platform_facade_hint(name, required_extra)
+            check_facade_hint(name, required_extra)
 
     skip = EXTRA_SKIP.get(extra, ())
     for root in EXTRA_ROOTS[extra]:

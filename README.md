@@ -5,7 +5,7 @@ Fleet plumbing for aiogram/MAX bots: logging, web bootstrap, cron gates, DAO, no
 ## Install
 
 ```bash
-uv add "bira-core[db,di,redis,tgbot,dialogs,protect] @ git+https://github.com/biradrags/bira-core@v0.2.2"
+uv add "bira-core[db,di,redis,tgbot,dialogs,protect] @ git+https://github.com/biradrags/bira-core@v0.3.0"
 ```
 
 ### Extras
@@ -25,8 +25,14 @@ uv add "bira-core[db,di,redis,tgbot,dialogs,protect] @ git+https://github.com/bi
 
 Контракт установки, проверяемый в CI на каждом extra отдельно:
 
-- **Кросс-платформенные фасады импортируются при голой установке** — `log`, `dt`, `kbd`, `tls`, `auth`, `web`, `forum`, `notify` (включая `Alerts`), `protect`, `db`, `redis`, `di`, `testing`. Функция, которой нужна отсутствующая зависимость, кидает `ImportError` с подсказкой, какой extra ставить.
-- **Платформенные фасады требуют свой SDK**: `bira_core.tgbot` → `[tgbot]`, `bira_core.maxbot` → `[max]`, `bira_core.payments` → `[payments]`. Без него import падает — но тоже с подсказкой, а не голым `ModuleNotFoundError`.
+- **Чистые фасады импортируются при голой установке** — `log`, `dt`, `kbd`, `tls`, `auth`,
+  `web`, `forum`, `notify`, `protect`, `testing`. Функция, которой нужен extra, живёт в
+  подмодуле, который его требует: `notify.send` (`deliver`, `safe_send`),
+  `tgbot.web_bootstrap` (`create_app`, `run_polling`), `protect.rate_limit` (`RateLimiter`),
+  `di.db` / `di.redis`, `maxbot.di`, `testing.db` / `.providers_tg` / `.providers_max`.
+- **Фасад слоя импортируется ⇔ стоит его extra** — `db`, `di`, `redis`, `tgbot`, `maxbot`,
+  `payments`. Без него import падает `ImportError` с подсказкой, какой extra ставить.
+  Ленивых `__getattr__` нет: всё, что фасад экспортирует, mypy потребителя видит.
 
 MAX-only бот ставит `bira-core[max]` и aiogram не тянет.
 
@@ -55,7 +61,7 @@ maxo = { git = "https://github.com/biradrags/maxo", rev = "..." }
 - `dt` — timezone helpers
 - `web` — cron app, `attach_cron_site`, `CRON_PORT=8081`; `create_app`/`run_polling` — extra `tgbot`
 - `notify` — `safe_send` (обычный код), `deliver`/`DeliveryResult` (рассылки; категории failure закрыты enum)
-- `protect` — L1 in-memory `FloodGuard`, L2 Redis `RateLimiter.allow`, L4 heuristics
+- `protect` — L1 in-memory `FloodGuard`, `StartDeduper`; L2 `RateLimiter` — `protect.rate_limit`; `IsLikelyBot` — aiogram-фильтр, `bira_core.tgbot`
 - `forum` — `ForumTopics` + `ThreadStore` protocol; `is_topic_gone(exc)` отдельно, для тех, кто топик не пересоздаёт
 - `tls` — `russian_trusted_ssl_context()` для ru-API за цепочкой НУЦ Минцифры
 - `payments` — T-Bank client
