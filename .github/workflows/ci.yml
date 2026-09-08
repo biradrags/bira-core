@@ -69,8 +69,11 @@ jobs:
           uv venv /tmp/smoke
           WHEEL=$(ls dist/*.whl)
           case "${{ matrix.profile }}" in
-            core) uv pip install --python /tmp/smoke/bin/python "$WHEEL" ;;
-            *)    uv pip install --python /tmp/smoke/bin/python "${WHEEL}[${{ matrix.profile }}]" ;;
+            core)    uv pip install --python /tmp/smoke/bin/python "$WHEEL" ;;
+            # testing композитный: сам по себе не даёт ни одного импортируемого модуля -
+            # db/providers_tg/providers_max требуют db или платформу (README, таблица extras)
+            testing) uv pip install --python /tmp/smoke/bin/python "${WHEEL}[testing,db]" ;;
+            *)       uv pip install --python /tmp/smoke/bin/python "${WHEEL}[${{ matrix.profile }}]" ;;
           esac
           case "${{ matrix.profile }}" in
             core)     M="bira_core.log.setup bira_core.log.redaction bira_core.dt.timezone bira_core.kbd.wrap bira_core.tls.russian_trusted bira_core.auth bira_core.web.cron bira_core.web.bootstrap bira_core.notify.delivery bira_core.notify.bulk bira_core.notify.split bira_core.notify.sender bira_core.notify.alerts bira_core.protect.flood_guard bira_core.protect.heuristics bira_core.protect.middleware" ;;
