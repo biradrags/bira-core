@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from aiohttp import web
 from aiohttp.typedefs import Middleware
 
 from bira_core.protect.flood_guard import FloodGuard
 from bira_core.protect.heuristics import StartDeduper
+
+if TYPE_CHECKING:
+    from bira_core.protect.heuristics import IsLikelyBot
+    from bira_core.protect.rate_limit import RateLimiter
 
 __all__ = [
     "FloodGuard",

@@ -1,6 +1,12 @@
 """Dishka provider facade."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from bira_core.di.db import DbProvider
+    from bira_core.di.notify import NotifierProvider
+    from bira_core.di.redis import RedisProvider
+    from bira_core.di.warmup import warm_up
 
 __all__ = ["DbProvider", "NotifierProvider", "RedisProvider", "warm_up"]
 

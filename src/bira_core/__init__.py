@@ -1,6 +1,6 @@
 """bira-core: fleet plumbing for aiogram bots."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from bira_core.log import (
     LogfmtFormatter,
@@ -8,6 +8,22 @@ from bira_core.log import (
     RedactionFilter,
     setup_logging,
 )
+
+if TYPE_CHECKING:
+    from bira_core.db import Base, BaseDAO, DbDsn, build_url
+    from bira_core.di import DbProvider, NotifierProvider, RedisProvider, warm_up
+    from bira_core.notify import Alerts, MessageSender, safe_send
+    from bira_core.tgbot import IsSuperAdmin, is_superadmin, register_error_handlers
+    from bira_core.web import (
+        CRON_PORT,
+        attach_cron_site,
+        create_app,
+        create_cron_app,
+        cron_protocol,
+        fly_src_gate,
+        run_polling,
+        run_webhook,
+    )
 
 __all__: list[str] = [
     "CRON_PORT",
