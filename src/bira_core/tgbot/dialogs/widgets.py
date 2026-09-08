@@ -9,7 +9,7 @@ from aiogram_dialog.api.protocols import DialogManager as DialogManagerProtocol
 from aiogram_dialog.widgets.kbd import Button, Group
 from aiogram_dialog.widgets.text import Text
 
-from bira_core.kbd import DEFAULT_ROW_CHARS, wrap_by_label_width
+from bira_core.kbd.wrap import DEFAULT_ROW_CHARS, wrap_by_label_width
 
 
 async def cancel_delete(

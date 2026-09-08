@@ -1,6 +1,6 @@
 import logging
 
-from bira_core.log import setup_logging
+from bira_core.log.setup import setup_logging
 
 
 def test_explicit_level_wins_over_env(monkeypatch) -> None:

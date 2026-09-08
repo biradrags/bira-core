@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 import ast
-import subprocess
 import sys
 from pathlib import Path
-
-import pytest
 
 SRC = Path(__file__).resolve().parents[1] / "src" / "bira_core"
 
@@ -148,21 +145,3 @@ def test_modules_respect_import_allowlists() -> None:
                 f"{py} ({module_key}): top-level import {root!r} "
                 f"not in allowlist {sorted(allowed)}"
             )
-
-
-def test_web_pure_import_without_aiogram() -> None:
-    code = """
-import bira_core.web
-assert bira_core.web.CRON_PORT == 8081
-assert callable(bira_core.web.create_cron_app)
-assert callable(bira_core.web.fly_src_gate)
-"""
-    result = subprocess.run(
-        [sys.executable, "-c", code],
-        capture_output=True,
-        text=True,
-        check=False,
-        env={k: v for k, v in __import__("os").environ.items() if k != "VIRTUAL_ENV"},
-    )
-    if result.returncode != 0:
-        pytest.fail(f"stderr:\n{result.stderr}\nstdout:\n{result.stdout}")

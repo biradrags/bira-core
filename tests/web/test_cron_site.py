@@ -1,7 +1,7 @@
 import aiohttp
 from aiohttp import web
 
-from bira_core.web import attach_cron_site
+from bira_core.web.bootstrap import attach_cron_site
 
 
 async def test_attach_cron_site_lifecycle(unused_tcp_port_factory) -> None:

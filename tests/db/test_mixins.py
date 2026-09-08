@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column
 
-from bira_core.db import Base
+from bira_core.db.base import Base
 from bira_core.db.mixins import TimestampMixin
 
 

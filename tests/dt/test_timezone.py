@@ -1,7 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from bira_core.dt import (
+from bira_core.dt.timezone import (
     convert_to_timezone,
     get_timezone,
     is_timezone_aware,

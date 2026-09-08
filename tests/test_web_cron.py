@@ -1,7 +1,7 @@
 from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
 
-from bira_core.web import cron_protocol, fly_src_gate
+from bira_core.web.cron import cron_protocol, fly_src_gate
 
 
 async def _make_client() -> TestClient:

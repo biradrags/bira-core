@@ -4,8 +4,8 @@ from aiogram import Router
 from aiogram.types import Chat, Message, Update, User
 from aiogram.types.error_event import ErrorEvent
 
-from bira_core.notify import Alerts
-from bira_core.tgbot import register_error_handlers
+from bira_core.notify.alerts import Alerts
+from bira_core.tgbot.errors import register_error_handlers
 
 
 @dataclass

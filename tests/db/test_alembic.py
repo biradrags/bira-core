@@ -1,6 +1,6 @@
 import pytest
 
-from bira_core.db import resolve_ddl_url
+from bira_core.db.alembic import resolve_ddl_url
 
 
 def test_env_override_wins(monkeypatch: pytest.MonkeyPatch) -> None:

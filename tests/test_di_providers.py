@@ -5,8 +5,8 @@ from dishka import Provider, Scope, make_async_container, provide
 from dishka.exceptions import GraphMissingFactoryError, NoFactoryError
 
 from bira_core.db.url import DbDsn
-from bira_core.di import warm_up
 from bira_core.di.db import DbProvider
+from bira_core.di.warmup import warm_up
 
 
 @dataclass

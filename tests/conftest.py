@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from bira_core.db import Base
+from bira_core.db.base import Base
 
 DSN = "postgresql+asyncpg://test:test@localhost:5499/test"
 

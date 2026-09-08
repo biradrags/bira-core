@@ -1,6 +1,6 @@
 from aiogram.types import Chat, Message, User
 
-from bira_core.tgbot import IsLikelyBot, IsSuperAdmin, is_superadmin
+from bira_core.tgbot.filters import IsLikelyBot, IsSuperAdmin, is_superadmin
 
 
 def _message(**user_kwargs: object) -> Message:

@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-from bira_core.log import RedactionFilter
+from bira_core.log.redaction import RedactionFilter
 from tests.fixtures_secret_names import SECRET_ENV_NAMES, SECRET_SHAPE_SAMPLES
 
 CASES = [

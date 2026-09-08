@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 from aiohttp import web
 
-from bira_core.protect import flood_guard_middleware
 from bira_core.protect.flood_guard import FloodGuard
+from bira_core.protect.middleware import flood_guard_middleware
 
 
 @pytest.mark.asyncio

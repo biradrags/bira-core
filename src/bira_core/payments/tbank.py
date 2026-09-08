@@ -16,7 +16,7 @@ from tenacity import (
     wait_exponential_jitter,
 )
 
-from bira_core.tls import russian_trusted_ssl_context
+from bira_core.tls.russian_trusted import russian_trusted_ssl_context
 
 
 def build_tbank_token(params: Mapping[str, Any], password: str) -> str:

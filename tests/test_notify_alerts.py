@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from bira_core.notify import Alerts
+from bira_core.notify.alerts import Alerts
 
 
 @dataclass
