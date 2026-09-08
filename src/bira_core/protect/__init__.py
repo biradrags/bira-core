@@ -3,40 +3,20 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Any
 
 from aiohttp import web
 from aiohttp.typedefs import Middleware
 
 from bira_core.protect.flood_guard import FloodGuard
-from bira_core.protect.heuristics import StartDeduper
+from bira_core.protect.heuristics import IsLikelyBot, StartDeduper
 
-if TYPE_CHECKING:
-    from bira_core.protect.heuristics import IsLikelyBot
-    from bira_core.protect.rate_limit import RateLimiter
-
+# RateLimiter требует redis - bira_core.protect.rate_limit ([protect]).
 __all__ = [
     "FloodGuard",
     "IsLikelyBot",
-    "RateLimiter",
     "StartDeduper",
     "flood_guard_middleware",
 ]
-
-_LAZY_EXPORTS: dict[str, str] = {
-    "IsLikelyBot": "bira_core.protect.heuristics",
-    "RateLimiter": "bira_core.protect.rate_limit",
-}
-
-
-def __getattr__(name: str) -> Any:
-    module_path = _LAZY_EXPORTS.get(name)
-    if module_path is None:
-        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-    from importlib import import_module
-
-    module = import_module(module_path)
-    return getattr(module, name)
 
 
 def flood_guard_middleware(
