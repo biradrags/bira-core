@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher
 from aiohttp.test_utils import TestClient, TestServer
 
-from bira_core.web import create_app
+from bira_core.tgbot.web_bootstrap import create_app
 
 
 async def test_health_and_webhook_route() -> None:
