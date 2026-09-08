@@ -1,6 +1,6 @@
 from aiogram.exceptions import TelegramNetworkError, TelegramRetryAfter
 
-from bira_core.notify import safe_send
+from bira_core.notify.send import safe_send
 
 
 class _FakeBot:
