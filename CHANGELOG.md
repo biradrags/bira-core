@@ -2,37 +2,60 @@
 
 ## v0.3.0 (2026-09-08)
 
-Фасады перестают врать статике. v0.2.2 залатал симптом зеркалами под `TYPE_CHECKING`;
-здесь убрана причина — ленивые `__getattr__`, которые харвест поставил ради контракта
-«любой фасад импортируется без extras». Контракт не стоил своей цены: фасад `db` без
-SQLAlchemy импортировался, но использовать его было нельзя, а платили за это стёртыми
-типами у каждого адоптера.
+Корень: библиотека держала невозможный трёхсторонний контракт — широкие публичные фасады,
+мелкие extras и строгая типизация. Python исполняет `parent/__init__.py` даже при глубоком
+импорте, поэтому каждая попытка удержать все три рождала адаптер (`__getattr__`, зеркала
+`TYPE_CHECKING`, eager с `try/except`). Убрана одна сторона: фасады. Публичный контракт —
+модуль-владелец; инициализаторы пакетов пустые.
 
 ### Breaking — пути импорта
 
-Правило одно: фасад eagerly ре-экспортирует то, что даёт его собственный extra; символу,
-которому нужен ещё один extra, — импорт из подмодуля.
-
-| Было | Стало |
+| Символы | Публичный путь |
 |---|---|
-| `bira_core.notify` → `deliver`, `safe_send` | `bira_core.notify.send` |
-| `bira_core.notify` → `classify_aiogram` | `bira_core.notify.classifier` |
-| `bira_core.web` → `create_app`, `run_polling`, `run_webhook` | `bira_core.tgbot.web_bootstrap` |
-| `bira_core.di` → `DbProvider` / `RedisProvider` | `bira_core.di.db` / `bira_core.di.redis` |
-| `bira_core.protect` → `RateLimiter` | `bira_core.protect.rate_limit` |
-| `bira_core.protect` / `protect.heuristics` → `IsLikelyBot` | `bira_core.tgbot` / `bira_core.tgbot.filters` — это aiogram-фильтр, не кросс-платформенная эвристика |
-| `bira_core.maxbot` → `MaxBotProvider`, `create_max_dispatcher` | `bira_core.maxbot.di` |
-| `bira_core.testing` → всё | `bira_core.testing.db` / `.providers_tg` / `.providers_max` |
-| `bira_core` (корень) → 22 ленивых имени | фасад слоя; в корне остались четыре имени `log` |
-
-`import bira_core.db` / `.redis` / `.di` без своего extra теперь падает сразу, с подсказкой —
-там, где она и нужна.
+| `setup_logging`, `LogfmtFormatter`, `ProbeAccessFilter` | `bira_core.log.setup` |
+| `RedactionFilter`, `RECORD_ATTRS`, `redact_log_message` | `bira_core.log.redaction` |
+| `DEFAULT_TIMEZONE`, `get_timezone`, `now_in_timezone`, … | `bira_core.dt.timezone` |
+| `DEFAULT_ROW_CHARS`, `wrap_by_label_width` | `bira_core.kbd.wrap` |
+| `CA_BUNDLE_NAME`, `load_ca_bundle_context`, `russian_trusted_ssl_context` | `bira_core.tls.russian_trusted` |
+| `is_superadmin` (SDK-free) | `bira_core.auth` |
+| `CRON_PORT`, `cron_protocol`, `fly_src_gate` | `bira_core.web.cron` |
+| `attach_cron_site`, `create_cron_app`, `health_handler` | `bira_core.web.bootstrap` |
+| `Alerts` | `bira_core.notify.alerts` |
+| `BulkReport`, `send_bulk` | `bira_core.notify.bulk` |
+| `DeliveryFailure`, `DeliveryResult`, `FailureCategory` | `bira_core.notify.delivery` |
+| `MessageSender` | `bira_core.notify.sender` |
+| `split_message` | `bira_core.notify.split` |
+| `deliver`, `safe_send` | `bira_core.notify.send` |
+| `classify_aiogram` | `bira_core.notify.classifier` |
+| `Base`, `NAMING_CONVENTION` | `bira_core.db.base` |
+| `BaseDAO` | `bira_core.db.dao` |
+| `DbDsn`, `build_url` | `bira_core.db.url` |
+| `DbTenantSettings` | `bira_core.db.settings` |
+| `TimestampMixin` | `bira_core.db.mixins` |
+| `resolve_ddl_url`, `run_migrations` | `bira_core.db.alembic` |
+| `make_redis_client`, `redis_connection_kwargs` | `bira_core.redis.client` |
+| `DbProvider` / `RedisProvider` / `NotifierProvider` / `warm_up` | `bira_core.di.db` / `.redis` / `.notify` / `.warmup` |
+| `FloodGuard` | `bira_core.protect.flood_guard` |
+| `StartDeduper` | `bira_core.protect.heuristics` |
+| `RateLimiter` | `bira_core.protect.rate_limit` |
+| `flood_guard_middleware` | `bira_core.protect.middleware` |
+| `TBankClient`, token helpers | `bira_core.payments.tbank` |
+| `IsLikelyBot`, `IsSuperAdmin`, `is_superadmin` | `bira_core.tgbot.filters` |
+| `is_topic_gone`, `TOPIC_GONE_MARKERS` | `bira_core.tgbot.forum` |
 
 ### Снято
 
-- `__getattr__` и `_EXPORTS` из девяти фасадов; зеркала `if TYPE_CHECKING` из v0.2.2;
-  `tests/test_facade_typing.py` — сторожить больше нечего. Правило держит
-  `test_extras_contract::test_modules_respect_import_allowlists`, который был и раньше.
+- Публичные фасады и шесть блоков `try/except ImportError` в инициализаторах.
+- `ForumTopics` / `ThreadStore` — ноль потребителей; `is_topic_gone` переехал в `tgbot.forum`.
+- Lifecycle-раннеры `run_webhook`, `run_polling`, `MaxPollingManager` — процессом владеет бот.
+- `scripts/smoke_extra.py`, `tests/test_extras_contract.py`, `tests/test_public_api.py` —
+  контракт установки теперь смоук колеса в CI (`smoke-wheel`, 8 профилей).
+- Extras-алиасы `alembic`, `protect`, `dialogs` влиты в `db`, `redis`, `tgbot` (10 → 7).
+
+### Контракт установки
+
+CI собирает wheel и импортирует публичные модули в чистом venv по каждому extra.
+Отсутствующий пакет — штатный `ModuleNotFoundError` с именем реального модуля.
 
 ## v0.2.2 (2026-09-08)
 
