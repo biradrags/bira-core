@@ -335,13 +335,8 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-alembic = [
-    { name = "alembic" },
-    { name = "asyncpg" },
-    { name = "pydantic" },
-    { name = "sqlalchemy", extra = ["asyncio"] },
-]
 db = [
+    { name = "alembic" },
     { name = "asyncpg" },
     { name = "pydantic" },
     { name = "sqlalchemy", extra = ["asyncio"] },
@@ -349,18 +344,11 @@ db = [
 di = [
     { name = "dishka" },
 ]
-dialogs = [
-    { name = "aiogram" },
-    { name = "aiogram-dialog" },
-]
 max = [
     { name = "maxo" },
 ]
 payments = [
     { name = "tenacity" },
-]
-protect = [
-    { name = "redis" },
 ]
 redis = [
     { name = "redis" },
@@ -371,6 +359,7 @@ testing = [
 ]
 tgbot = [
     { name = "aiogram" },
+    { name = "aiogram-dialog" },
 ]
 
 [package.dev-dependencies]
@@ -394,24 +383,21 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiogram", marker = "extra == 'dialogs'", specifier = ">=3.20" },
     { name = "aiogram", marker = "extra == 'tgbot'", specifier = ">=3.20" },
-    { name = "aiogram-dialog", marker = "extra == 'dialogs'", specifier = ">=2.5,<3" },
+    { name = "aiogram-dialog", marker = "extra == 'tgbot'", specifier = ">=2.5,<3" },
     { name = "aiohttp", specifier = ">=3.9.4" },
-    { name = "alembic", marker = "extra == 'alembic'", specifier = ">=1.13" },
+    { name = "alembic", marker = "extra == 'db'", specifier = ">=1.13" },
     { name = "asyncpg", marker = "extra == 'db'", specifier = ">=0.29" },
-    { name = "bira-core", extras = ["db"], marker = "extra == 'alembic'" },
     { name = "dishka", marker = "extra == 'di'", specifier = ">=1.3" },
     { name = "dishka", marker = "extra == 'testing'", specifier = ">=1.3" },
     { name = "maxo", marker = "extra == 'max'", specifier = ">=0.8,<1.0" },
     { name = "pydantic", marker = "extra == 'db'", specifier = ">=2" },
     { name = "pytest", marker = "extra == 'testing'", specifier = ">=8" },
-    { name = "redis", marker = "extra == 'protect'", specifier = ">=5" },
     { name = "redis", marker = "extra == 'redis'", specifier = ">=5" },
     { name = "sqlalchemy", extras = ["asyncio"], marker = "extra == 'db'", specifier = ">=2.0" },
     { name = "tenacity", marker = "extra == 'payments'", specifier = ">=8" },
 ]
-provides-extras = ["db", "redis", "di", "tgbot", "dialogs", "max", "payments", "protect", "alembic", "testing"]
+provides-extras = ["db", "redis", "di", "tgbot", "max", "payments", "testing"]
 
 [package.metadata.requires-dev]
 dev = [
