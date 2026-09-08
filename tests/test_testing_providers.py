@@ -3,9 +3,7 @@ from unittest import mock
 from aiogram import Bot
 from dishka import make_async_container
 
-import bira_core.testing
-from bira_core.testing import MockBotProvider
-from bira_core.testing.providers_tg import MockMessageManagerProvider
+from bira_core.testing.providers_tg import MockBotProvider, MockMessageManagerProvider
 
 
 async def test_mock_bot_provider_uses_mock_session() -> None:
@@ -17,7 +15,9 @@ async def test_mock_bot_provider_uses_mock_session() -> None:
 
 
 def test_testing_import_without_aiogram_dialog() -> None:
-    assert bira_core.testing.MockBotProvider is MockBotProvider
+    from bira_core.testing.providers_tg import MockBotProvider as from_sub
+
+    assert from_sub is MockBotProvider
 
 
 def test_mock_message_manager_with_dialogs_extra() -> None:
