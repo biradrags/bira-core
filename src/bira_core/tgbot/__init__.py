@@ -3,7 +3,7 @@
 try:
     from bira_core.tgbot.commands import CANCEL_COMMAND, cancel_command
     from bira_core.tgbot.errors import register_error_handlers
-    from bira_core.tgbot.filters import IsSuperAdmin, is_superadmin
+    from bira_core.tgbot.filters import IsLikelyBot, IsSuperAdmin, is_superadmin
     from bira_core.tgbot.keyboards import (
         build_tbank_payment_keyboard,
         single_button_keyboard,
@@ -22,6 +22,7 @@ except ImportError as e:  # pragma: no cover - путь без extra [tgbot]
 
 __all__ = [
     "CANCEL_COMMAND",
+    "IsLikelyBot",
     "IsSuperAdmin",
     "TransferResult",
     "build_tbank_payment_keyboard",

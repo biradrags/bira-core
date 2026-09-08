@@ -8,12 +8,12 @@ from aiohttp import web
 from aiohttp.typedefs import Middleware
 
 from bira_core.protect.flood_guard import FloodGuard
-from bira_core.protect.heuristics import IsLikelyBot, StartDeduper
+from bira_core.protect.heuristics import StartDeduper
 
 # RateLimiter требует redis - bira_core.protect.rate_limit ([protect]).
+# IsLikelyBot - фильтр aiogram, живёт в bira_core.tgbot.filters ([tgbot]).
 __all__ = [
     "FloodGuard",
-    "IsLikelyBot",
     "StartDeduper",
     "flood_guard_middleware",
 ]
