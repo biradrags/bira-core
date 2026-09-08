@@ -1,7 +1,25 @@
 """Test fixtures facade."""
 
 from importlib import import_module
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from bira_core.testing.db import (
+        rollback_session,
+        rollback_session_fixture,
+        savepoint_session,
+        savepoint_session_fixture,
+        savepoint_session_from_connection,
+        xdist_locked_migrations,
+    )
+    from bira_core.testing.providers_max import (
+        MockMaxDpProvider,
+        MockMaxMessageManagerProvider,
+    )
+    from bira_core.testing.providers_tg import (
+        MockBotProvider,
+        MockMessageManagerProvider,
+    )
 
 __all__ = [
     "MockBotProvider",

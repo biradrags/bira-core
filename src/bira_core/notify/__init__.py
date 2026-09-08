@@ -1,13 +1,19 @@
 """Outbound messaging facade."""
 
 from importlib import import_module
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from bira_core.notify.alerts import Alerts
 from bira_core.notify.bulk import BulkReport, send_bulk
 from bira_core.notify.delivery import DeliveryFailure, DeliveryResult, FailureCategory
 from bira_core.notify.sender import MessageSender
 from bira_core.notify.split import split_message
+
+# Ленивые символы - реальными типами для mypy потребителя: без этого __getattr__
+# отдаёт их как Any, и весь код вокруг них у адоптера не проверяется.
+if TYPE_CHECKING:
+    from bira_core.notify.classifier import classify_aiogram
+    from bira_core.notify.send import deliver, safe_send
 
 __all__ = [
     "Alerts",

@@ -1,7 +1,10 @@
 """MAX bot helpers facade."""
 
 from importlib import import_module
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from bira_core.maxbot.di import MaxBotProvider, create_max_dispatcher
 
 try:
     from bira_core.maxbot.dialogs import (

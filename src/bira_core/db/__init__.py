@@ -1,6 +1,15 @@
 """Database layer facade."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+# См. bira_core/notify/__init__.py - те же грабли: __getattr__ стирает типы.
+if TYPE_CHECKING:
+    from bira_core.db.alembic import resolve_ddl_url, run_migrations
+    from bira_core.db.base import NAMING_CONVENTION, Base
+    from bira_core.db.dao import BaseDAO
+    from bira_core.db.mixins import TimestampMixin
+    from bira_core.db.settings import DbTenantSettings
+    from bira_core.db.url import DbDsn, build_url
 
 __all__ = [
     "NAMING_CONVENTION",
