@@ -8,12 +8,6 @@ try:
         register_stale_intent,
     )
     from bira_core.maxbot.filters import IsSuperAdmin
-    from bira_core.maxbot.polling import (
-        MaxPollingManager,
-        SecondaryBotFactory,
-        run_long_polling,
-        stop_max_polling,
-    )
     from bira_core.maxbot.web import drop_webhook_subscriptions
 except ImportError as e:  # pragma: no cover - путь без extra [max]
     e.add_note("pip install bira-core[max]")
@@ -23,12 +17,8 @@ except ImportError as e:  # pragma: no cover - путь без extra [max]
 __all__ = [
     "IsSuperAdmin",
     "MaxDialogNotifier",
-    "MaxPollingManager",
-    "SecondaryBotFactory",
     "cancel_delete",
     "clear_stale_intent",
     "drop_webhook_subscriptions",
     "register_stale_intent",
-    "run_long_polling",
-    "stop_max_polling",
 ]

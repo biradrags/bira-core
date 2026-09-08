@@ -3,7 +3,7 @@
 from bira_core.web.bootstrap import attach_cron_site, create_cron_app, health_handler
 from bira_core.web.cron import CRON_PORT, cron_protocol, fly_src_gate
 
-# create_app / run_polling / run_webhook требуют aiogram - bira_core.tgbot.web_bootstrap.
+# create_app требует aiogram - bira_core.tgbot.web_bootstrap.
 __all__ = [
     "CRON_PORT",
     "attach_cron_site",
