@@ -30,7 +30,7 @@ def redis_connection_kwargs(*, decode_responses: bool = True) -> dict[str, Any]:
         "retry": Retry(
             ExponentialBackoff(cap=2, base=0.1),
             retries=DEFAULT_RETRY_ATTEMPTS,
-            supported_errors=_RECONNECT_ERRORS,  # type: ignore[arg-type]
+            supported_errors=_RECONNECT_ERRORS,  # type: ignore[arg-type]  # redis-py сужает до RedisError, ретраим ещё OSError/TypeError
         ),
         "retry_on_error": list(_RECONNECT_ERRORS),
     }

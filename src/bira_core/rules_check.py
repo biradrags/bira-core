@@ -23,6 +23,9 @@ _LOG_SETUP = (
     re.compile(r"\blogging\.config\.dictConfig\s*\("),
     re.compile(r"\bcolorlog\b"),
 )
+_APP_ENV_OS = re.compile(
+    r"""\bos\.(?:environ\.get|getenv|environ\[)\s*\(?\s*['"]APP_ENV['"]"""
+)
 _TX_WRITE = re.compile(
     r"\bawait\s+(?:self\.)?\w*dao\.\w+\.(?:create|upsert|insert|add|save|set|"
     r"update|delete|remove|mark|claim|toggle|link|expire|bump|incr)\w*\s*\("
@@ -30,6 +33,8 @@ _TX_WRITE = re.compile(
 _TX_CLOSE = re.compile(r"\b(?:release_current_dao|commit|release|rollback)\s*\(")
 _TX_NETWORK = re.compile(r"\bawait\s+(?:self\.)?(?:bot|notifier)\.")
 _TX_BOUNDARY = re.compile(r"^\s*(?:async\s+def|def|class)\s")
+_ASSERT_NONE = re.compile(r"\bassert\s+[\w.\[\]'\"]+\s+is\s+not\s+None\b")
+_TYPE_IGNORE_BARE = re.compile(r"#\s*type:\s*ignore\[[a-z0-9_,-]+\]\s*$")
 _SKIP_DIRS = {
     ".venv",
     ".git",
@@ -75,7 +80,7 @@ def _html_escape(path: Path, line: str) -> bool:
     return bool(_HTML_FSTR.search(line))
 
 
-def _log_setup_skip(path: Path) -> bool:
+def _skip_scripts_and_tests(path: Path) -> bool:
     return (
         "scripts" in path.parts
         or "tests" in path.parts
@@ -84,11 +89,25 @@ def _log_setup_skip(path: Path) -> bool:
 
 
 def _log_setup(path: Path, line: str) -> bool:
-    if _log_setup_skip(path):
+    if _skip_scripts_and_tests(path):
         return False
     if line.lstrip().startswith("#"):
         return False
     return any(p.search(line) for p in _LOG_SETUP)
+
+
+def _app_env_source(path: Path, line: str) -> bool:
+    if _skip_scripts_and_tests(path):
+        return False
+    return bool(_APP_ENV_OS.search(line))
+
+
+def _assert_none(path: Path, line: str) -> bool:
+    return not _skip_scripts_and_tests(path) and bool(_ASSERT_NONE.search(line))
+
+
+def _type_ignore_why(path: Path, line: str) -> bool:
+    return bool(_TYPE_IGNORE_BARE.search(line))
 
 
 def _tx_network_hits(lines: list[str]) -> list[tuple[int, str, int]]:
@@ -116,6 +135,9 @@ _CHECKS = (
     ("html-escape", "html-escape-ok", _html_escape),
     ("dao-raise", "dao-raise-ok", _dao_raise),
     ("log-setup", "log-setup-ok", _log_setup),
+    ("app-env-source", "app-env-ok", _app_env_source),
+    ("assert-none", "assert-none-ok", _assert_none),
+    ("type-ignore-why", "type-ignore-ok", _type_ignore_why),
 )
 
 

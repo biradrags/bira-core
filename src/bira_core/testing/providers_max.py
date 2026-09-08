@@ -1,7 +1,7 @@
 """Dishka test providers for the MAX side."""
 
 import importlib
-from typing import Any, cast
+from typing import Any
 
 from dishka import Provider, Scope, provide
 from maxo import Dispatcher as MaxDispatcher
@@ -44,4 +44,4 @@ class MockMaxDpProvider(Provider):
         key_builder = key_builder_mod.DefaultKeyBuilder(with_destiny=True)
         dp = MaxDispatcher(storage=storage, key_builder=key_builder)
         dp.workflow_data["message_manager"] = max_mm
-        return cast(Any, dp)  # type: ignore[no-any-return]
+        return dp

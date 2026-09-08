@@ -75,5 +75,5 @@ class AdaptiveGroup(Group):
         super().__init__(*buttons, id=id, width=1, when=when)
         self.max_row_chars = max_row_chars
 
-    def _wrap_kbd(self, kbd: list[Any]) -> list[list[Any]]:  # type: ignore[override]
+    def _wrap_kbd(self, kbd: list[Any]) -> list[list[Any]]:  # type: ignore[override]  # Group._wrap_kbd типизирован уже, чем принимает
         return wrap_by_label_width(kbd, self.max_row_chars)
