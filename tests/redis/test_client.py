@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from bira_core.redis import make_redis_client, redis_connection_kwargs
+from bira_core.redis.client import make_redis_client, redis_connection_kwargs
 
 
 def test_redis_connection_kwargs_shape() -> None:

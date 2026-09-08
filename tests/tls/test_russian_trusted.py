@@ -1,7 +1,10 @@
 import ssl
 import time
 
-from bira_core.tls import load_ca_bundle_context, russian_trusted_ssl_context
+from bira_core.tls.russian_trusted import (
+    load_ca_bundle_context,
+    russian_trusted_ssl_context,
+)
 
 MIN_DAYS_LEFT = 60
 _DAY_SECONDS = 86400

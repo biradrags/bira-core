@@ -54,33 +54,36 @@ jobs:
       - run: uv sync --all-extras
       - run: uv run pytest -q -n 2 --dist loadgroup
 
-  smoke-extras:
+  smoke-wheel:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        extra:
-          - core
-          - db
-          - di
-          - redis
-          - tgbot
-          - dialogs
-          - max
-          - payments
-          - protect
-          - alembic
-          - testing
+        profile: [core, db, redis, di, tgbot, max, payments, testing]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - name: Install package with single extra
+      - run: uv build --wheel
+      - name: Install wheel into a clean env and import public modules
         run: |
-          uv venv /tmp/smoke-venv
-          if [ "${{ matrix.extra }}" = "core" ]; then
-            uv pip install --python /tmp/smoke-venv/bin/python -e .
-          else
-            uv pip install --python /tmp/smoke-venv/bin/python -e ".[${{ matrix.extra }}]"
-          fi
-      - name: Run smoke
-        run: /tmp/smoke-venv/bin/python scripts/smoke_extra.py ${{ matrix.extra }}
+          uv venv /tmp/smoke
+          WHEEL=$(ls dist/*.whl)
+          case "${{ matrix.profile }}" in
+            core)    uv pip install --python /tmp/smoke/bin/python "$WHEEL" ;;
+            # testing композитный: сам по себе не даёт ни одного импортируемого модуля -
+            # db/providers_tg/providers_max требуют db или платформу (README, таблица extras)
+            testing) uv pip install --python /tmp/smoke/bin/python "${WHEEL}[testing,db]" ;;
+            *)       uv pip install --python /tmp/smoke/bin/python "${WHEEL}[${{ matrix.profile }}]" ;;
+          esac
+          case "${{ matrix.profile }}" in
+            core)     M="bira_core.log.setup bira_core.log.redaction bira_core.dt.timezone bira_core.kbd.wrap bira_core.tls.russian_trusted bira_core.auth bira_core.web.cron bira_core.web.bootstrap bira_core.notify.delivery bira_core.notify.bulk bira_core.notify.split bira_core.notify.sender bira_core.notify.alerts bira_core.protect.flood_guard bira_core.protect.heuristics bira_core.protect.middleware" ;;
+            db)       M="bira_core.db.base bira_core.db.dao bira_core.db.url bira_core.db.settings bira_core.db.mixins bira_core.db.queries bira_core.db.alembic" ;;
+            redis)    M="bira_core.redis.client bira_core.protect.rate_limit" ;;
+            di)       M="bira_core.di.warmup bira_core.di.notify" ;;
+            tgbot)    M="bira_core.tgbot.filters bira_core.tgbot.commands bira_core.tgbot.errors bira_core.tgbot.keyboards bira_core.tgbot.last bira_core.tgbot.media_transfer bira_core.tgbot.forum bira_core.tgbot.dialogs" ;;
+            max)      M="bira_core.maxbot.filters bira_core.maxbot.web bira_core.maxbot.dialogs" ;;
+            payments) M="bira_core.payments.tbank" ;;
+            testing)  M="bira_core.testing.db" ;;
+          esac
+          for m in $M; do /tmp/smoke/bin/python -c "import $m" || exit 1; done
+          echo "smoke ok: ${{ matrix.profile }}"

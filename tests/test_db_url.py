@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from bira_core.db import build_url
+from bira_core.db.url import build_url
 
 
 @dataclass

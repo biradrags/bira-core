@@ -1,5 +1,62 @@
 # Changelog
 
+## v0.3.0 (2026-09-08)
+
+Корень: библиотека держала невозможный трёхсторонний контракт — широкие публичные фасады,
+мелкие extras и строгая типизация. Python исполняет `parent/__init__.py` даже при глубоком
+импорте, поэтому каждая попытка удержать все три рождала адаптер (`__getattr__`, зеркала
+`TYPE_CHECKING`, eager с `try/except`). Убрана одна сторона: фасады. Публичный контракт —
+модуль-владелец; инициализаторы пакетов пустые.
+
+### Breaking — пути импорта
+
+| Символы | Публичный путь |
+|---|---|
+| `setup_logging`, `LogfmtFormatter`, `ProbeAccessFilter` | `bira_core.log.setup` |
+| `RedactionFilter`, `RECORD_ATTRS`, `redact_log_message` | `bira_core.log.redaction` |
+| `DEFAULT_TIMEZONE`, `get_timezone`, `now_in_timezone`, … | `bira_core.dt.timezone` |
+| `DEFAULT_ROW_CHARS`, `wrap_by_label_width` | `bira_core.kbd.wrap` |
+| `CA_BUNDLE_NAME`, `load_ca_bundle_context`, `russian_trusted_ssl_context` | `bira_core.tls.russian_trusted` |
+| `is_superadmin` (SDK-free) | `bira_core.auth` |
+| `CRON_PORT`, `cron_protocol`, `fly_src_gate` | `bira_core.web.cron` |
+| `attach_cron_site`, `create_cron_app`, `health_handler` | `bira_core.web.bootstrap` |
+| `Alerts` | `bira_core.notify.alerts` |
+| `BulkReport`, `send_bulk` | `bira_core.notify.bulk` |
+| `DeliveryFailure`, `DeliveryResult`, `FailureCategory` | `bira_core.notify.delivery` |
+| `MessageSender` | `bira_core.notify.sender` |
+| `split_message` | `bira_core.notify.split` |
+| `deliver`, `safe_send` | `bira_core.notify.send` |
+| `classify_aiogram` | `bira_core.notify.classifier` |
+| `Base`, `NAMING_CONVENTION` | `bira_core.db.base` |
+| `BaseDAO` | `bira_core.db.dao` |
+| `DbDsn`, `build_url` | `bira_core.db.url` |
+| `DbTenantSettings` | `bira_core.db.settings` |
+| `TimestampMixin` | `bira_core.db.mixins` |
+| `resolve_ddl_url`, `run_migrations` | `bira_core.db.alembic` |
+| `make_redis_client`, `redis_connection_kwargs` | `bira_core.redis.client` |
+| `DbProvider` / `RedisProvider` / `NotifierProvider` / `warm_up` | `bira_core.di.db` / `.redis` / `.notify` / `.warmup` |
+| `FloodGuard` | `bira_core.protect.flood_guard` |
+| `StartDeduper` | `bira_core.protect.heuristics` |
+| `RateLimiter` | `bira_core.protect.rate_limit` |
+| `flood_guard_middleware` | `bira_core.protect.middleware` |
+| `TBankClient`, token helpers | `bira_core.payments.tbank` |
+| `IsLikelyBot`, `IsSuperAdmin`, `is_superadmin` | `bira_core.tgbot.filters` |
+| `is_topic_gone`, `TOPIC_GONE_MARKERS` | `bira_core.tgbot.forum` |
+
+### Снято
+
+- Публичные фасады и шесть блоков `try/except ImportError` в инициализаторах.
+- `ForumTopics` / `ThreadStore` — ноль потребителей; `is_topic_gone` переехал в `tgbot.forum`.
+- Lifecycle-раннеры `run_webhook`, `run_polling`, `MaxPollingManager` — процессом владеет бот.
+- `scripts/smoke_extra.py`, `tests/test_extras_contract.py`, `tests/test_public_api.py` —
+  контракт установки теперь смоук колеса в CI (`smoke-wheel`, 8 профилей).
+- Extras-алиасы `alembic`, `protect`, `dialogs` влиты в `db`, `redis`, `tgbot` (10 → 7).
+
+### Контракт установки
+
+CI собирает wheel и импортирует публичные модули в чистом venv по каждому extra.
+Отсутствующий пакет — штатный `ModuleNotFoundError` с именем реального модуля.
+
 ## v0.2.2 (2026-09-08)
 
 Найдено при миграции metrikamedia: `py.typed` в пакете есть, но половина публичного API

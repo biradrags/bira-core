@@ -3,8 +3,8 @@ from collections.abc import Iterator
 
 import pytest
 
-from bira_core.log import LogfmtFormatter, RedactionFilter, setup_logging
 from bira_core.log.redaction import redact_extra
+from bira_core.log.setup import LogfmtFormatter, RedactionFilter, setup_logging
 
 
 @pytest.fixture

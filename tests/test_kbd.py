@@ -1,4 +1,4 @@
-from bira_core.kbd import DEFAULT_ROW_CHARS, wrap_by_label_width
+from bira_core.kbd.wrap import DEFAULT_ROW_CHARS, wrap_by_label_width
 
 
 class Btn:

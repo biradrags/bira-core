@@ -5,28 +5,25 @@ Fleet plumbing for aiogram/MAX bots: logging, web bootstrap, cron gates, DAO, no
 ## Install
 
 ```bash
-uv add "bira-core[db,di,redis,tgbot,dialogs,protect] @ git+https://github.com/biradrags/bira-core@v0.2.2"
+uv add "bira-core[db,di,redis,tgbot,testing] @ git+https://github.com/biradrags/bira-core@v0.3.0"
 ```
 
 ### Extras
 
 | Extra | Зависимости | Модули |
 |-------|-------------|--------|
-| `tgbot` | aiogram | `bira_core.tgbot`, `bira_core.notify` (TG) |
-| `dialogs` | aiogram, aiogram-dialog | `bira_core.tgbot.dialogs` |
-| `max` | maxo | `bira_core.maxbot` |
-| `db` | SQLAlchemy, asyncpg, pydantic | `bira_core.db`, `TimestampMixin`, `DbTenantSettings` |
-| `alembic` | alembic | `resolve_ddl_url`, `run_migrations` |
-| `redis` | redis-py | `bira_core.redis` |
-| `di` | dishka | `bira_core.di` |
-| `protect` | redis (опционально для L2) | `bira_core.protect` |
-| `payments` | tenacity | `bira_core.payments` |
-| `testing` | dishka, pytest | `bira_core.testing` (платформа — своим extra: `[testing,tgbot]`, `[testing,max]`, `[testing,db]`) |
+| `tgbot` | aiogram, aiogram-dialog | `bira_core.tgbot.*`, `bira_core.notify.send`, `bira_core.notify.classifier` |
+| `max` | maxo | `bira_core.maxbot.*` |
+| `db` | SQLAlchemy, asyncpg, pydantic, alembic | `bira_core.db.*` |
+| `redis` | redis-py | `bira_core.redis.client`, `bira_core.protect.rate_limit` |
+| `di` | dishka | `bira_core.di.warmup`, `bira_core.di.notify` (+ `di.db`/`di.redis` с `[db,di]`/`[redis,di]`) |
+| `payments` | tenacity | `bira_core.payments.tbank` |
+| `testing` | dishka, pytest | `bira_core.testing.*` (платформа — своим extra: `[testing,tgbot]`, `[testing,max]`, `[testing,db]`) |
 
-Контракт установки, проверяемый в CI на каждом extra отдельно:
-
-- **Кросс-платформенные фасады импортируются при голой установке** — `log`, `dt`, `kbd`, `tls`, `auth`, `web`, `forum`, `notify` (включая `Alerts`), `protect`, `db`, `redis`, `di`, `testing`. Функция, которой нужна отсутствующая зависимость, кидает `ImportError` с подсказкой, какой extra ставить.
-- **Платформенные фасады требуют свой SDK**: `bira_core.tgbot` → `[tgbot]`, `bira_core.maxbot` → `[max]`, `bira_core.payments` → `[payments]`. Без него import падает — но тоже с подсказкой, а не голым `ModuleNotFoundError`.
+Публичный контракт — модуль, который им владеет: `bira_core.db.dao`, `bira_core.notify.send`,
+`bira_core.tgbot.filters`. Инициализаторы пакетов пустые: `import bira_core.db` ничего не
+тянет и ничего не даёт. Модуль, которому нужен отсутствующий пакет, падает штатным
+`ModuleNotFoundError` с именем этого пакета — какой профиль его ставит, видно в таблице выше.
 
 MAX-only бот ставит `bira-core[max]` и aiogram не тянет.
 
@@ -37,49 +34,58 @@ MAX-only бот ставит `bira-core[max]` и aiogram не тянет.
 maxo = { git = "https://github.com/biradrags/maxo", rev = "..." }
 ```
 
-## Module map (v0.2)
+## Module map (v0.3)
 
 Зеркальные неймспейсы платформ:
 
 | Пакет | Содержимое |
 |-------|------------|
-| `bira_core.tgbot` | commands, keyboards, filters, media_transfer, errors |
-| `bira_core.tgbot.dialogs` | starters, widgets, stale-intent, notifier |
-| `bira_core.maxbot` | polling, filters, web, di |
-| `bira_core.maxbot.dialogs` | widgets, stale-intent, notifier |
+| `bira_core.tgbot.commands` | `CANCEL_COMMAND`, `cancel_command` |
+| `bira_core.tgbot.filters` | `IsLikelyBot`, `IsSuperAdmin`, `is_superadmin` |
+| `bira_core.tgbot.errors` | `register_error_handlers` |
+| `bira_core.tgbot.keyboards` | payment/inline keyboards |
+| `bira_core.tgbot.last` | `setup_last_router` |
+| `bira_core.tgbot.media_transfer` | cross-chat media helpers |
+| `bira_core.tgbot.forum` | `is_topic_gone`, `TOPIC_GONE_MARKERS` |
+| `bira_core.tgbot.web_bootstrap` | `create_app` (webhook app builder) |
+| `bira_core.tgbot.dialogs.*` | starters, widgets, stale-intent, notifier |
+| `bira_core.maxbot.filters` | `IsSuperAdmin` |
+| `bira_core.maxbot.web` | `drop_webhook_subscriptions` |
+| `bira_core.maxbot.dialogs.*` | widgets, stale-intent, notifier |
 
 Общие слои:
 
-- `log` — logfmt `setup_logging`, redaction (`LOG_LEVEL` из env только при `level=None`)
-- `db` — `build_url`, `BaseDAO`, alembic helpers, query builders; `Base` с флотовой конвенцией имён ограничений (словарь отдельно — `NAMING_CONVENTION`, для проектов с одним отличающимся правилом)
-- `dt` — timezone helpers
-- `web` — cron app, `attach_cron_site`, `CRON_PORT=8081`; `create_app`/`run_polling` — extra `tgbot`
-- `notify` — `safe_send` (обычный код), `deliver`/`DeliveryResult` (рассылки; категории failure закрыты enum)
-- `protect` — L1 in-memory `FloodGuard`, L2 Redis `RateLimiter.allow`, L4 heuristics
-- `forum` — `ForumTopics` + `ThreadStore` protocol; `is_topic_gone(exc)` отдельно, для тех, кто топик не пересоздаёт
-- `tls` — `russian_trusted_ssl_context()` для ru-API за цепочкой НУЦ Минцифры
-- `payments` — T-Bank client
-- `testing` — mock DI, db fixtures (`rollback_session`, `savepoint_session`)
-
-### ForumTopics + ThreadStore
-
-Потребитель реализует `ThreadStore` поверх своего DAO и регистрирует `ForumTopics` в Dishka:
-
-```python
-from dishka import Provider, Scope, provide
-from bira_core.forum import ForumTopics, ThreadStore
-
-
-class MyThreadStore:
-    async def get_thread_id(self, key: str) -> int | None: ...
-    async def set_thread_id(self, key: str, thread_id: int) -> None: ...
-
-
-class ForumProvider(Provider):
-    @provide(scope=Scope.APP)
-    def forum(self, bot: Bot, store: MyThreadStore) -> ForumTopics:
-        return ForumTopics(bot, forum_chat_id=-100123, store=store)
-```
+| Модуль | Символы |
+|--------|---------|
+| `bira_core.log.setup` | `setup_logging`, `LogfmtFormatter`, `ProbeAccessFilter` |
+| `bira_core.log.redaction` | `RedactionFilter`, `RECORD_ATTRS`, `redact_log_message` |
+| `bira_core.dt.timezone` | `DEFAULT_TIMEZONE`, `get_timezone`, `now_in_timezone`, … |
+| `bira_core.kbd.wrap` | `DEFAULT_ROW_CHARS`, `wrap_by_label_width` |
+| `bira_core.tls.russian_trusted` | `CA_BUNDLE_NAME`, `load_ca_bundle_context`, `russian_trusted_ssl_context` |
+| `bira_core.auth` | `is_superadmin` (SDK-free) |
+| `bira_core.web.cron` | `CRON_PORT`, `cron_protocol`, `fly_src_gate` |
+| `bira_core.web.bootstrap` | `attach_cron_site`, `create_cron_app`, `health_handler` |
+| `bira_core.notify.alerts` | `Alerts` |
+| `bira_core.notify.bulk` | `BulkReport`, `send_bulk` |
+| `bira_core.notify.delivery` | `DeliveryFailure`, `DeliveryResult`, `FailureCategory` |
+| `bira_core.notify.sender` | `MessageSender` |
+| `bira_core.notify.split` | `split_message` |
+| `bira_core.notify.send` | `deliver`, `safe_send` |
+| `bira_core.notify.classifier` | `classify_aiogram` |
+| `bira_core.db.base` | `Base`, `NAMING_CONVENTION` |
+| `bira_core.db.dao` | `BaseDAO` |
+| `bira_core.db.url` | `DbDsn`, `build_url` |
+| `bira_core.db.settings` | `DbTenantSettings` |
+| `bira_core.db.mixins` | `TimestampMixin` |
+| `bira_core.db.alembic` | `resolve_ddl_url`, `run_migrations` |
+| `bira_core.redis.client` | `make_redis_client`, `redis_connection_kwargs` |
+| `bira_core.di.db` / `.redis` / `.notify` / `.warmup` | Dishka providers, `warm_up` |
+| `bira_core.protect.flood_guard` | `FloodGuard` |
+| `bira_core.protect.heuristics` | `StartDeduper` |
+| `bira_core.protect.rate_limit` | `RateLimiter` |
+| `bira_core.protect.middleware` | `flood_guard_middleware` |
+| `bira_core.payments.tbank` | `TBankClient`, token helpers |
+| `bira_core.testing.db` | `rollback_session`, `savepoint_session` |
 
 ### protect: лимиты без UsageGate
 
@@ -92,7 +98,7 @@ if not await rate_limiter.allow(f"action:{user_id}", limit=10, window_s=60):
   return
 ```
 
-`RateLimiter(..., fail_open=True)` при недоступном Redis не блокирует трафик: каждая машина держит свой in-memory бюджет без общего окна (N×лимит, см. докстринг `bira_core.protect`).
+`RateLimiter(..., fail_open=True)` при недоступном Redis не блокирует трафик: каждая машина держит свой in-memory бюджет без общего окна (N×лимит, см. докстринг `bira_core.protect.rate_limit`).
 
 ### ru-API: сертификат НУЦ Минцифры
 
@@ -101,7 +107,7 @@ bundle образа. Контекст вешается **на запрос**, н
 расширится на все хосты, куда ходит бот.
 
 ```python
-from bira_core.tls import russian_trusted_ssl_context
+from bira_core.tls.russian_trusted import russian_trusted_ssl_context
 
 async with session.post(url, json=body, ssl=russian_trusted_ssl_context()) as resp:
     ...

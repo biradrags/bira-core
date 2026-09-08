@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from bira_core.db import NAMING_CONVENTION, Base
+from bira_core.db.base import NAMING_CONVENTION, Base
 
 
 def test_naming_convention_pinned() -> None:
