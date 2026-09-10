@@ -10,6 +10,9 @@ TOPIC_GONE_MARKERS = frozenset(
         "topic_deleted",
         "TOPIC_DELETED",
         "message thread not found",
+        "TOPIC_ID_INVALID",
+        "topic not found",
+        "topic_not_found",
     }
 )
 
