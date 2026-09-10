@@ -1,5 +1,42 @@
 # Changelog
 
+## v0.3.1 (2026-09-10)
+
+Ревью-раунд сверки `tgbot.forum` и `db.alembic` с кодом ботов флота: два пробела —
+неполный набор маркеров «топик удалён» и отсутствующий sync-режим миграций.
+Не breaking — только добавления, публичные сигнатуры не менялись.
+
+### Исправления
+
+- `TOPIC_GONE_MARKERS` не ловил `TOPIC_ID_INVALID` — маркер, на который уже
+  опирается `metrika-bot/metrika/services/forum_cleanup.py`; миграция бота на
+  `is_topic_gone` тихо теряла бы часть удалённых топиков в суточной чистке.
+  Обход всех восьми ботов флота грепом по маркерам нашёл ещё два реальных,
+  уже эксплуатируемых варианта — добавлены и они: `"topic not found"`
+  (`solodki-bot/app/services/forum.py`) и `"topic_not_found"`
+  (`metrika-bot/scripts/cleanup_self_userbot_clients.py`). Дубль
+  `"topic_deleted"`/`"TOPIC_DELETED"` (после `.lower()` в `is_topic_gone` — одна
+  и та же строка) сознательно не тронут: `TOPIC_GONE_MARKERS` — публичный
+  `frozenset` в `__all__`, а не только input для `is_topic_gone`; убрать один
+  регистр — риск сломать код, который делает точное членство по конкретному
+  кейсу, а не только вызывает функцию. Не breaking для самой `is_topic_gone` —
+  дедуп не даёт функционального выигрыша, только скрытый риск.
+- `run_migrations` не имел sync-ветки. Локальный `metrika-bot/metrika/migrations/env.py`
+  умеет гонять миграции через `create_engine` (sync), когда URL не `+asyncpg` —
+  на этом стоят три integration/e2e фикстуры (metrika-bot, metrikamedia), которые
+  подменяют `+asyncpg` на `+psycopg` перед `alembic upgrade head` в подпроцессе.
+  Ветка перенесена в либу 1:1 (новые `run_migrations_sync` + предикат
+  `_use_sync_engine`), без изменения сигнатуры `run_migrations`.
+
+### Проверено, не тронуто
+
+- `_connect_args_for_host` (условный `ssl=False` только для `.flycast`/`.internal`)
+  не ломает `make db-upgrade` в dev/CI — подтверждено живым подключением: `+asyncpg`
+  без явного `ssl=False` коннектится к локальному docker Postgres без проблем
+  (asyncpg не поднимает TLS, если сервер его не предлагает). Безусловный
+  `ssl=False` в локальном `env.py` metrika-bot — более широкая, но не более
+  корректная форма того же самого; либа оставлена как есть.
+
 ## v0.3.0 (2026-09-08)
 
 Корень: библиотека держала невозможный трёхсторонний контракт — широкие публичные фасады,
