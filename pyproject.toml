@@ -39,6 +39,7 @@ dev = [
     "pytest-xdist>=3.5",
     "maxo>=0.8,<1.0",
     "tenacity>=8",
+    "psycopg[binary]>=3.2.3,<4.0",
 ]
 
 [build-system]

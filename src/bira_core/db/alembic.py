@@ -53,8 +53,19 @@ def _connect_args_for_host(host: str) -> dict[str, object]:
     return {"ssl": False} if _host.endswith((".flycast", ".internal")) else {}
 
 
+def _use_sync_engine(url: str | None) -> bool:
+    """True когда `url` не async-драйвер (нет `+asyncpg`) - гнать миграции синхронно.
+
+    Нужно фикстурам, которые подменяют `+asyncpg` на `+psycopg` перед прогоном
+    миграций в подпроцессе (metrika-bot/metrikamedia integration/e2e conftest).
+    """
+    if url is None:
+        return False
+    return bool(url) and "+asyncpg" not in url
+
+
 def run_migrations(config: Any, target_metadata: MetaData, *, host: str = "") -> None:
-    """Run Alembic offline or online against target_metadata."""
+    """Run Alembic offline or online (sync- or async-driver) against target_metadata."""
     from alembic import context
 
     _connect_args = _connect_args_for_host(host)
@@ -86,8 +97,23 @@ def run_migrations(config: Any, target_metadata: MetaData, *, host: str = "") ->
             await connection.run_sync(do_run_migrations)
         await connectable.dispose()
 
+    def run_migrations_sync() -> None:
+        from sqlalchemy import create_engine
+
+        url = config.get_main_option("sqlalchemy.url")
+        if url is None:
+            raise RuntimeError("sqlalchemy.url is not set")
+        engine = create_engine(url, poolclass=pool.NullPool)
+        with engine.connect() as connection:
+            do_run_migrations(connection)
+        engine.dispose()
+
     def run_migrations_online() -> None:
-        asyncio.run(run_async_migrations())
+        url = config.get_main_option("sqlalchemy.url")
+        if _use_sync_engine(url):
+            run_migrations_sync()
+        else:
+            asyncio.run(run_async_migrations())
 
     if context.is_offline_mode():
         run_migrations_offline()
