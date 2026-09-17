@@ -28,6 +28,7 @@ SECRET_ENV_NAMES: list[str] = sorted(
         "USERBOT_API_ID",
         "WEBHOOK_SECRET",
         "XAI_API_KEY",
+        "YADISK_TOKEN",
     }
 )
 
@@ -56,6 +57,10 @@ SECRET_SHAPE_SAMPLES: dict[str, tuple[str, str]] = {
     "groq_key": (
         "GROQ_API_KEY",
         "gsk_fake123456789012345678901234567890",
+    ),
+    "yandex_oauth": (
+        "YADISK_TOKEN",
+        "y0_FakeFakeFakeFakeFake12345",
     ),
     "webhook_secret": (
         "WEBHOOK_SECRET",

@@ -9,6 +9,9 @@ CASES = [
     ("token=7213001234:AAFakeFakeFakeFakeFakeFakeFakeFak", "7213001234:AAFake"),
     ("postgres://bot:sup3rs3cret@db.internal:5432/app", "sup3rs3cret"),
     ("Authorization: Bearer sk-fake-abcdef123456", "sk-fake-abcdef123456"),
+    # Яндекс.Диск: токен течёт и в заголовке, и голым в тексте ошибки yadisk
+    ("Authorization: OAuth y0_FakeFakeFakeFakeFake12345", "y0_FakeFakeFake"),
+    ("yadisk request failed: y0_FakeFakeFakeFakeFake12345", "y0_FakeFakeFake"),
 ]
 
 REQUIRED_ENV_NAMES = {

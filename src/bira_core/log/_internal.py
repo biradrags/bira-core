@@ -44,7 +44,11 @@ MASK = "***"
 # Дефис внутри обязателен: нынешние ключи - sk-proj-…/sk-svcacct-…
 OPENAI_KEY_RE = re.compile(r"sk-[a-zA-Z0-9_-]{20,}")
 BEARER_RE = re.compile(r"Bearer\s+\S+", re.IGNORECASE)
+# Схема авторизации Яндекса - так токен Диска уходит в заголовке и в тексте ошибок yadisk
+OAUTH_SCHEME_RE = re.compile(r"OAuth\s+\S+", re.IGNORECASE)
 TG_TOKEN_RE = re.compile(r"\d{6,12}:[A-Za-z0-9_-]{30,}")
+# Тот же токен голым: kv-форма закрыта именем ключа, а в тексте исключения имени нет
+YANDEX_TOKEN_RE = re.compile(r"y0[_-][A-Za-z0-9_-]{20,}")
 DSN_RE = re.compile(
     r"(?:postgresql|postgres|mysql|rediss|redis|mongodb)(?:\+[a-z0-9]+)?://[^\s,)\]]*",
     re.IGNORECASE,
@@ -61,14 +65,9 @@ RECORD_ATTRS = frozenset(logging.LogRecord("", 0, "", 0, "", None, None).__dict_
 def redact_string(s: str) -> str:
     s = TG_TOKEN_RE.sub(lambda m: _mask_value(m.group(0)), s)
     s = OPENAI_KEY_RE.sub(lambda m: _mask_value(m.group(0)), s)
-    s = BEARER_RE.sub(
-        lambda m: (
-            m.group(0).split(maxsplit=1)[0]
-            + " "
-            + _mask_value(m.group(0).split(maxsplit=1)[1])
-        ),
-        s,
-    )
+    s = BEARER_RE.sub(_mask_scheme_value, s)
+    s = OAUTH_SCHEME_RE.sub(_mask_scheme_value, s)
+    s = YANDEX_TOKEN_RE.sub(lambda m: _mask_value(m.group(0)), s)
     s = URL_AUTH_RE.sub(lambda m: _mask_value(m.group(0)), s)
     return DSN_RE.sub(lambda m: _mask_value(m.group(0)), s)
 
@@ -154,6 +153,12 @@ def _mask_value(value: str) -> str:
     if len(value) <= PREFIX_LEN + SUFFIX_LEN:
         return MASK
     return value[:PREFIX_LEN] + MASK + value[-SUFFIX_LEN:]
+
+
+def _mask_scheme_value(match: re.Match[str]) -> str:
+    """Сохранить имя схемы (Bearer/OAuth), замаскировать значение за ним."""
+    scheme, value = match.group(0).split(maxsplit=1)
+    return f"{scheme} {_mask_value(value)}"
 
 
 def _is_sensitive_key(key: str) -> bool:
