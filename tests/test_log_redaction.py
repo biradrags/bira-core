@@ -12,6 +12,10 @@ CASES = [
     # Яндекс.Диск: токен течёт и в заголовке, и голым в тексте ошибки yadisk
     ("Authorization: OAuth y0_FakeFakeFakeFakeFake12345", "y0_FakeFakeFake"),
     ("yadisk request failed: y0_FakeFakeFakeFakeFake12345", "y0_FakeFakeFake"),
+    # Провайдеры с узнаваемым префиксом - та же форма «токен без имени ключа»
+    ("xai call failed: xai-fake-key-abcdef123456789012", "fake-key-abcdef"),
+    ("groq call failed: gsk_fake123456789012345678901234567890", "gsk_fake1234567"),
+    ("s3 denied for AKIAIOSFODNN7EXAMPLE", "AKIAIOSFODNN7EX"),
 ]
 
 REQUIRED_ENV_NAMES = {

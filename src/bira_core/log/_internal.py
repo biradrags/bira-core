@@ -49,6 +49,11 @@ OAUTH_SCHEME_RE = re.compile(r"OAuth\s+\S+", re.IGNORECASE)
 TG_TOKEN_RE = re.compile(r"\d{6,12}:[A-Za-z0-9_-]{30,}")
 # Тот же токен голым: kv-форма закрыта именем ключа, а в тексте исключения имени нет
 YANDEX_TOKEN_RE = re.compile(r"y0[_-][A-Za-z0-9_-]{20,}")
+# Остальные провайдеры флота с узнаваемым префиксом - та же дыра «токен без имени ключа»
+XAI_KEY_RE = re.compile(r"xai-[A-Za-z0-9_-]{20,}")
+GROQ_KEY_RE = re.compile(r"gsk_[A-Za-z0-9]{20,}")
+# Только access key id: сам secret - 40 символов base64 без префикса, ловится лишь по имени
+AWS_KEY_ID_RE = re.compile(r"(?:AKIA|ASIA)[0-9A-Z]{16}")
 DSN_RE = re.compile(
     r"(?:postgresql|postgres|mysql|rediss|redis|mongodb)(?:\+[a-z0-9]+)?://[^\s,)\]]*",
     re.IGNORECASE,
@@ -68,6 +73,9 @@ def redact_string(s: str) -> str:
     s = BEARER_RE.sub(_mask_scheme_value, s)
     s = OAUTH_SCHEME_RE.sub(_mask_scheme_value, s)
     s = YANDEX_TOKEN_RE.sub(lambda m: _mask_value(m.group(0)), s)
+    s = XAI_KEY_RE.sub(lambda m: _mask_value(m.group(0)), s)
+    s = GROQ_KEY_RE.sub(lambda m: _mask_value(m.group(0)), s)
+    s = AWS_KEY_ID_RE.sub(lambda m: _mask_value(m.group(0)), s)
     s = URL_AUTH_RE.sub(lambda m: _mask_value(m.group(0)), s)
     return DSN_RE.sub(lambda m: _mask_value(m.group(0)), s)
 

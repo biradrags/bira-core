@@ -5,7 +5,7 @@ Fleet plumbing for aiogram/MAX bots: logging, web bootstrap, cron gates, DAO, no
 ## Install
 
 ```bash
-uv add "bira-core[db,di,redis,tgbot,testing] @ git+https://github.com/biradrags/bira-core@v0.3.2"
+uv add "bira-core[db,di,redis,tgbot,testing] @ git+https://github.com/biradrags/bira-core@v0.3.3"
 ```
 
 ### Extras
