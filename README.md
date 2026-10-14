@@ -47,6 +47,7 @@ maxo = { git = "https://github.com/biradrags/maxo", rev = "..." }
 | `bira_core.tgbot.last` | `setup_last_router` |
 | `bira_core.tgbot.media_transfer` | cross-chat media helpers |
 | `bira_core.tgbot.forum` | `is_topic_gone`, `TOPIC_GONE_MARKERS` |
+| `bira_core.tgbot.emoji` | `emoji_id`, `tg_emoji` - анимированные кастом-эмодзи набора `RestrictedEmoji` |
 | `bira_core.tgbot.web_bootstrap` | `create_app` (webhook app, случайный секрет, set_webhook), `used_update_types` |
 | `bira_core.tgbot.dialogs.*` | starters, widgets, stale-intent, notifier |
 | `bira_core.maxbot.filters` | `IsSuperAdmin` |

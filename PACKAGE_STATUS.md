@@ -16,6 +16,7 @@ v0.3 — alpha до первого бот-адоптера; публичный A
 | `protect` | alpha | L1 FloodGuard + L2 RateLimiter; Redis — extra `[redis]` |
 | `tgbot` | alpha | extra `[tgbot]` (включая aiogram-dialog) |
 | `tgbot.forum` | alpha | `is_topic_gone` — детекция удалённого топика |
+| `tgbot.emoji` | alpha | кастом-эмодзи `RestrictedEmoji`; без SDK, пак - данные пакета |
 | `maxbot` | alpha | extra `[max]` |
 | `testing` | alpha | mock providers + db fixtures |
 | `rules_check` | beta | console-script `bira-rules-check` |
