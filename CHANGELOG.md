@@ -1,8 +1,32 @@
 # Changelog
 
-## v0.3.4 (2026-10-14)
+## v0.4.0 (2026-10-14)
 
-Ключи ПДн в маскировщике. Не breaking - только добавления.
+Обвязка Telegram-бота из замечаний к plastic-bot#1: `__main__` бота сводится к склейке.
+Тег v0.3.4 не ставился - его правка ПДн входит сюда. Не breaking: старые вызовы
+`create_app(..., webhook_path=..., webhook_secret=...)` работают как раньше.
+
+### Новое
+
+- `tgbot.web_bootstrap.create_app(base_url=...)` ставит вебхук на старте, после
+  startup-хендлеров диспетчера. Без `webhook_secret` секрет случайный на процесс
+  (`secrets.token_hex(32)`): из env и fly secrets он уходит. Цена - на время
+  деплоя старая машина отвечает 401, Telegram повторяет апдейт на новую.
+- `create_app(handle_in_background=...)` - ответ Telegram после обработки (`False`)
+  для ботов с идемпотентными хендлерами; дефолт aiogram (`True`) не менялся.
+- `tgbot.web_bootstrap.used_update_types(dp)` - `allowed_updates` из хендлеров
+  диспетчера без служебного `aiogd_update`; для `set_webhook` и `start_polling`.
+- `rules_check`: чек `dishka-request` - `FromDishka[...Dao|...Service]` в слое `tgbot`.
+  Штатный `dishka.integrations.aiogram.setup_dishka` открывает REQUEST-область на
+  каждом observer: DAO из middleware на `dp.update` и `FromDishka[HolderDao]` хендлера -
+  два объекта с двумя сессиями, и eager release отпускает не ту транзакцию. REQUEST-
+  объекты хендлеры берут из data (как в shvatka); APP-сервис глушится `# dishka-request-ok`.
+- `di.db.DbProvider(pool_recycle=..., connect_timeout=...)` - короткий recycle для Fly
+  suspend, который рвёт простаивающие соединения; дефолты прежние (1800, без таймаута).
+- `tgbot.dialogs.release`: `ReleasingMessageManager`, `bind_release(dao)`,
+  `release_current` - eager release из канона dialogs.md (инцидент solodki
+  20.08.2026), до этого копией в каждом боте с диалогами. `bind_release` зовётся
+  в InitMiddleware бота на `dp.update` с тем же DAO, что лежит в `data["dao"]`.
 
 ### Исправления
 

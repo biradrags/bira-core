@@ -18,11 +18,20 @@ class DbProvider(Provider):
 
     scope = Scope.APP
 
-    def __init__(self, *, pool_size: int, max_overflow: int) -> None:
-        """Store SQLAlchemy pool_size and max_overflow for engine()."""
+    def __init__(
+        self,
+        *,
+        pool_size: int,
+        max_overflow: int,
+        pool_recycle: int = 1800,
+        connect_timeout: float | None = None,
+    ) -> None:
+        """Пул и таймауты engine(); pool_recycle короче простоя, после которого Fly рвёт соединения."""
         super().__init__()
         self._pool_size = pool_size
         self._max_overflow = max_overflow
+        self._pool_recycle = pool_recycle
+        self._connect_timeout = connect_timeout
 
     @provide
     async def engine(self, dsn: DbDsn) -> AsyncIterable[AsyncEngine]:
@@ -32,13 +41,15 @@ class DbProvider(Provider):
         host = (url.host or "").lower()
         if host.endswith((".flycast", ".internal")):
             connect_args["ssl"] = False
+        if self._connect_timeout is not None:
+            connect_args["timeout"] = self._connect_timeout
         engine = create_async_engine(
             url=url,
             pool_pre_ping=True,
             pool_size=self._pool_size,
             max_overflow=self._max_overflow,
             pool_timeout=5,
-            pool_recycle=1800,
+            pool_recycle=self._pool_recycle,
             connect_args=connect_args,
         )
         yield engine

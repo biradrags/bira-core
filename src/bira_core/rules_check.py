@@ -35,6 +35,7 @@ _TX_NETWORK = re.compile(r"\bawait\s+(?:self\.)?(?:bot|notifier)\.")
 _TX_BOUNDARY = re.compile(r"^\s*(?:async\s+def|def|class)\s")
 _ASSERT_NONE = re.compile(r"\bassert\s+[\w.\[\]'\"]+\s+is\s+not\s+None\b")
 _TYPE_IGNORE_BARE = re.compile(r"#\s*type:\s*ignore\[[a-z0-9_,-]+\]\s*$")
+_DISHKA_REQUEST = re.compile(r"\bFromDishka\[\s*\w*(?:Dao|DAO|Service)\s*\]")
 _SKIP_DIRS = {
     ".venv",
     ".git",
@@ -110,6 +111,10 @@ def _type_ignore_why(path: Path, line: str) -> bool:
     return bool(_TYPE_IGNORE_BARE.search(line))
 
 
+def _dishka_request(path: Path, line: str) -> bool:
+    return _in_layer(path, "tgbot") and bool(_DISHKA_REQUEST.search(line))
+
+
 def _tx_network_hits(lines: list[str]) -> list[tuple[int, str, int]]:
     hits: list[tuple[int, str, int]] = []
     pending = 0
@@ -137,6 +142,7 @@ _CHECKS = (
     ("log-setup", "log-setup-ok", _log_setup),
     ("app-env-source", "app-env-ok", _app_env_source),
     ("assert-none", "assert-none-ok", _assert_none),
+    ("dishka-request", "dishka-request-ok", _dishka_request),
     ("type-ignore-why", "type-ignore-ok", _type_ignore_why),
 )
 
