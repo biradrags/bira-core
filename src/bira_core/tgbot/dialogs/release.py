@@ -1,16 +1,15 @@
 """Eager release: транзакция апдейта закрывается перед каждым выходом aiogram_dialog
 в Telegram (канон dialogs.md, «Eager release»)."""
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Iterator
+from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Any, Protocol
+from typing import Protocol
 
-from aiogram import BaseMiddleware, Bot
-from aiogram.types import CallbackQuery, Message, TelegramObject
+from aiogram import Bot
+from aiogram.types import CallbackQuery, Message
 from aiogram_dialog.api.entities import NewMessage, OldMessage, ShowMode
 from aiogram_dialog.manager.message_manager import MessageManager
-from dishka import AsyncContainer
-from dishka.integrations.aiogram import CONTAINER_NAME
 
 
 class Releasable(Protocol):
@@ -24,35 +23,21 @@ class Releasable(Protocol):
 _current: ContextVar[Releasable | None] = ContextVar("bira_release_dao", default=None)
 
 
+@contextmanager
+def bind_release(dao: Releasable) -> Iterator[None]:
+    """DAO апдейта для release на время хендлера. Звать в InitMiddleware на `dp.update` с `data["dao"]`."""
+    token = _current.set(dao)
+    try:
+        yield
+    finally:
+        _current.reset(token)
+
+
 async def release_current() -> None:
     """Отпустить DAO текущего апдейта; вне апдейта - no-op."""
     dao = _current.get()
     if dao is not None:
         await dao.release()
-
-
-class ReleaseMiddleware(BaseMiddleware):
-    """Кладёт DAO апдейта в ContextVar. Вешать на `dp.update` после `setup_dishka`.
-
-    REQUEST-объекты хендлеры берут из data, не `FromDishka` (dialogs.md, «Одна область»)."""
-
-    def __init__(self, dao_type: type[Releasable]) -> None:
-        """dao_type - тип DAO в REQUEST-области контейнера."""
-        self._dao_type = dao_type
-
-    async def __call__(
-        self,
-        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
-        event: TelegramObject,
-        data: dict[str, Any],
-    ) -> Any:
-        """Выставить ContextVar на время апдейта."""
-        container: AsyncContainer = data[CONTAINER_NAME]
-        token = _current.set(await container.get(self._dao_type))
-        try:
-            return await handler(event, data)
-        finally:
-            _current.reset(token)
 
 
 class ReleasingMessageManager(MessageManager):

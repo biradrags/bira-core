@@ -23,9 +23,10 @@
   объекты хендлеры берут из data (как в shvatka); APP-сервис глушится `# dishka-request-ok`.
 - `di.db.DbProvider(pool_recycle=..., connect_timeout=...)` - короткий recycle для Fly
   suspend, который рвёт простаивающие соединения; дефолты прежние (1800, без таймаута).
-- `tgbot.dialogs.release`: `ReleaseMiddleware(dao_type)`, `ReleasingMessageManager`,
+- `tgbot.dialogs.release`: `ReleasingMessageManager`, `bind_release(dao)`,
   `release_current` - eager release из канона dialogs.md (инцидент solodki
-  20.08.2026), до этого копией в каждом боте с диалогами.
+  20.08.2026), до этого копией в каждом боте с диалогами. `bind_release` зовётся
+  в InitMiddleware бота на `dp.update` с тем же DAO, что лежит в `data["dao"]`.
 
 ### Исправления
 
