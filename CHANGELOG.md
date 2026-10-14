@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.5.0 (2026-10-14)
+
+### Breaking
+
+- Удалён `tgbot.dialogs.release` (`ReleasingMessageManager`, `bind_release`,
+  `release_current`). Сессию апдейта закрывает REQUEST-область dishka в конце
+  апдейта, как в shvatka; шов «геттер -> рендер» остаётся только в solodki-bot
+  своей копией (канон dialogs.md, 14.10.2026). Потребителей во флоте нет.
+
 ## v0.4.0 (2026-10-14)
 
 Обвязка Telegram-бота из замечаний к plastic-bot#1: `__main__` бота сводится к склейке.
