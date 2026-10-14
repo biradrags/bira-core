@@ -42,7 +42,7 @@ async def test_db_provider_pool_recycle_and_connect_timeout() -> None:
         _DsnProvider(),
     )
     engine = await container.get(AsyncEngine)
-    assert engine.pool._recycle == 300  # noqa: SLF001 - публичного геттера у пула нет
+    assert engine.pool._recycle == 300
     await container.close()
 
 
