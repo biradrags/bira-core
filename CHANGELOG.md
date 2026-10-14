@@ -1,8 +1,29 @@
 # Changelog
 
-## v0.3.4 (2026-10-14)
+## v0.4.0 (2026-10-14)
 
-Ключи ПДн в маскировщике. Не breaking - только добавления.
+Обвязка Telegram-бота из замечаний к plastic-bot#1: `__main__` бота сводится к склейке.
+Тег v0.3.4 не ставился - его правка ПДн входит сюда. Не breaking: старые вызовы
+`create_app(..., webhook_path=..., webhook_secret=...)` работают как раньше.
+
+### Новое
+
+- `tgbot.web_bootstrap.create_app(base_url=...)` ставит вебхук на старте, после
+  startup-хендлеров диспетчера. Без `webhook_secret` секрет случайный на процесс
+  (`secrets.token_hex(32)`): из env и fly secrets он уходит. Цена - на время
+  деплоя старая машина отвечает 401, Telegram повторяет апдейт на новую.
+- `create_app(handle_in_background=...)` - ответ Telegram после обработки (`False`)
+  для ботов с идемпотентными хендлерами; дефолт aiogram (`True`) не менялся.
+- `tgbot.web_bootstrap.used_update_types(dp)` - `allowed_updates` из хендлеров
+  диспетчера без служебного `aiogd_update`; для `set_webhook` и `start_polling`.
+- `tgbot.di.setup_dishka` - замена штатного: одна REQUEST-область на апдейт.
+  Штатный `dishka.integrations.aiogram.setup_dishka` открывает область на каждом
+  observer, и DAO из middleware на `dp.update` и `FromDishka[HolderDao]` хендлера -
+  два разных объекта с двумя сессиями. С eager release это значит, что release
+  отпускает не ту транзакцию. `create_app(container=...)` использует замену.
+- `tgbot.dialogs.release`: `ReleaseMiddleware(dao_type)`, `ReleasingMessageManager`,
+  `release_current` - eager release из канона dialogs.md (инцидент solodki
+  20.08.2026), до этого копией в каждом боте с диалогами.
 
 ### Исправления
 
