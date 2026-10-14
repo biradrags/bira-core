@@ -33,6 +33,28 @@ def test_rules_check_allows_app_env_as_settings_field(tmp_path: Path) -> None:
     assert main(["rules_check", str(tmp_path)]) == 0
 
 
+def test_rules_check_flags_request_fromdishka_in_tgbot(tmp_path: Path) -> None:
+    handlers = tmp_path / "tgbot" / "handlers"
+    handlers.mkdir(parents=True)
+    (handlers / "admin.py").write_text(
+        "async def stats(dao: FromDishka[HolderDao]) -> None: ...\n"
+    )
+    assert main(["rules_check", str(tmp_path)]) == 1
+
+
+def test_rules_check_allows_request_fromdishka_outside_tgbot(tmp_path: Path) -> None:
+    routes = tmp_path / "api" / "routes"
+    routes.mkdir(parents=True)
+    (routes / "health.py").write_text(
+        "async def health(dao: FromDishka[HolderDao]) -> None: ...\n"
+    )
+    (tmp_path / "tgbot").mkdir()
+    (tmp_path / "tgbot" / "last.py").write_text(
+        "async def last(texts: FromDishka[Texts]) -> None: ...\n"
+    )
+    assert main(["rules_check", str(tmp_path)]) == 0
+
+
 def test_module_entrypoint(tmp_path: Path) -> None:
     (tmp_path / "ok.py").write_text("x = 1\n")
     proc = subprocess.run(

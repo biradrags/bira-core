@@ -48,9 +48,9 @@ def create_app(
         app.router.add_route(route.method, route.path, route.handler)
 
     if container is not None:
-        from bira_core.tgbot.di import setup_dishka
+        from dishka.integrations.aiogram import setup_dishka
 
-        setup_dishka(container, dp)
+        setup_dishka(container=container, router=dp, auto_inject=True)
 
         async def on_shutdown(_: web.Application) -> None:
             await container.close()

@@ -32,7 +32,9 @@ async def release_current() -> None:
 
 
 class ReleaseMiddleware(BaseMiddleware):
-    """Кладёт DAO апдейта в ContextVar. Вешать на `dp.update` после `bira_core.tgbot.di.setup_dishka`."""
+    """Кладёт DAO апдейта в ContextVar. Вешать на `dp.update` после `setup_dishka`.
+
+    REQUEST-объекты хендлеры берут из data, не `FromDishka` (dialogs.md, «Одна область»)."""
 
     def __init__(self, dao_type: type[Releasable]) -> None:
         """dao_type - тип DAO в REQUEST-области контейнера."""

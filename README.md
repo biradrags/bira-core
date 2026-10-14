@@ -48,7 +48,6 @@ maxo = { git = "https://github.com/biradrags/maxo", rev = "..." }
 | `bira_core.tgbot.media_transfer` | cross-chat media helpers |
 | `bira_core.tgbot.forum` | `is_topic_gone`, `TOPIC_GONE_MARKERS` |
 | `bira_core.tgbot.web_bootstrap` | `create_app` (webhook app, случайный секрет, set_webhook), `used_update_types` |
-| `bira_core.tgbot.di` | `setup_dishka` - одна REQUEST-область на апдейт (нужен extra `di`) |
 | `bira_core.tgbot.dialogs.release` | `ReleaseMiddleware`, `ReleasingMessageManager`, `release_current` (extra `di`) |
 | `bira_core.tgbot.dialogs.*` | starters, widgets, stale-intent, notifier |
 | `bira_core.maxbot.filters` | `IsSuperAdmin` |

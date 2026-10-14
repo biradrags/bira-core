@@ -16,11 +16,11 @@
   для ботов с идемпотентными хендлерами; дефолт aiogram (`True`) не менялся.
 - `tgbot.web_bootstrap.used_update_types(dp)` - `allowed_updates` из хендлеров
   диспетчера без служебного `aiogd_update`; для `set_webhook` и `start_polling`.
-- `tgbot.di.setup_dishka` - замена штатного: одна REQUEST-область на апдейт.
-  Штатный `dishka.integrations.aiogram.setup_dishka` открывает область на каждом
-  observer, и DAO из middleware на `dp.update` и `FromDishka[HolderDao]` хендлера -
-  два разных объекта с двумя сессиями. С eager release это значит, что release
-  отпускает не ту транзакцию. `create_app(container=...)` использует замену.
+- `rules_check`: чек `dishka-request` - `FromDishka[...Dao|...Service]` в слое `tgbot`.
+  Штатный `dishka.integrations.aiogram.setup_dishka` открывает REQUEST-область на
+  каждом observer: DAO из middleware на `dp.update` и `FromDishka[HolderDao]` хендлера -
+  два объекта с двумя сессиями, и eager release отпускает не ту транзакцию. REQUEST-
+  объекты хендлеры берут из data (как в shvatka); APP-сервис глушится `# dishka-request-ok`.
 - `di.db.DbProvider(pool_recycle=..., connect_timeout=...)` - короткий recycle для Fly
   suspend, который рвёт простаивающие соединения; дефолты прежние (1800, без таймаута).
 - `tgbot.dialogs.release`: `ReleaseMiddleware(dao_type)`, `ReleasingMessageManager`,
