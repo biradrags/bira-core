@@ -21,6 +21,11 @@ SENSITIVE_KEY_NAMES = frozenset(
         "access_key",
         "session",
         "session_string",
+        # ПДн пользователей ботов: в extra им место только маской
+        "phone",
+        "username",
+        "transcript",
+        "description",
     }
 )
 SENSITIVE_KEY_SUFFIXES = (
@@ -35,6 +40,7 @@ SENSITIVE_KEY_SUFFIXES = (
     "_hash",
     "_creds",
     "_terminal_key",
+    "_phone",
 )
 SENSITIVE_KEY_PATTERNS = ("token", "secret", "password", "api_key", "dsn", "auth")
 PREFIX_LEN = 4

@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-from bira_core.log.redaction import RedactionFilter
+from bira_core.log.redaction import RedactionFilter, redact_extra
 from tests.fixtures_secret_names import SECRET_ENV_NAMES, SECRET_SHAPE_SAMPLES
 
 CASES = [
@@ -67,3 +67,16 @@ def test_masks_fleet_secret_shape(shape: str) -> None:
     rec = _record(raw)
     assert f.filter(rec) is True
     assert secret_value not in rec.getMessage()
+
+
+@pytest.mark.parametrize(
+    "key", ["phone", "username", "transcript", "description", "contact_phone"]
+)
+def test_pii_keys_are_masked(key: str) -> None:
+    out = redact_extra({key: "+79991234567"})
+    assert out[key] != "+79991234567"
+
+
+def test_pii_text_value_is_masked() -> None:
+    out = redact_extra({"transcript": "позвоните мне вечером"})
+    assert out["transcript"] != "позвоните мне вечером"
