@@ -21,6 +21,8 @@
   observer, и DAO из middleware на `dp.update` и `FromDishka[HolderDao]` хендлера -
   два разных объекта с двумя сессиями. С eager release это значит, что release
   отпускает не ту транзакцию. `create_app(container=...)` использует замену.
+- `di.db.DbProvider(pool_recycle=..., connect_timeout=...)` - короткий recycle для Fly
+  suspend, который рвёт простаивающие соединения; дефолты прежние (1800, без таймаута).
 - `tgbot.dialogs.release`: `ReleaseMiddleware(dao_type)`, `ReleasingMessageManager`,
   `release_current` - eager release из канона dialogs.md (инцидент solodki
   20.08.2026), до этого копией в каждом боте с диалогами.

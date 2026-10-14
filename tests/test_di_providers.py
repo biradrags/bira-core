@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import pytest
 from dishka import Provider, Scope, make_async_container, provide
 from dishka.exceptions import GraphMissingFactoryError, NoFactoryError
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from bira_core.db.url import DbDsn
 from bira_core.di.db import DbProvider
@@ -32,6 +33,16 @@ async def test_warm_up_raises_on_missing_dependency() -> None:
     )
     with pytest.raises((GraphMissingFactoryError, NoFactoryError)):
         await warm_up(container, [int])
+    await container.close()
+
+
+async def test_db_provider_pool_recycle_and_connect_timeout() -> None:
+    container = make_async_container(
+        DbProvider(pool_size=1, max_overflow=0, pool_recycle=300, connect_timeout=2),
+        _DsnProvider(),
+    )
+    engine = await container.get(AsyncEngine)
+    assert engine.pool._recycle == 300  # noqa: SLF001 - публичного геттера у пула нет
     await container.close()
 
 
