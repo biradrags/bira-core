@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
@@ -12,6 +12,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlalchemy.sql.schema import MetaData
 
 from bira_core.db.url import build_url
+
+if TYPE_CHECKING:
+    from alembic.runtime.environment import IncludeObjectFn
 
 
 def resolve_ddl_url(
@@ -64,8 +67,17 @@ def _use_sync_engine(url: str | None) -> bool:
     return bool(url) and "+asyncpg" not in url
 
 
-def run_migrations(config: Any, target_metadata: MetaData, *, host: str = "") -> None:
-    """Run Alembic offline or online (sync- or async-driver) against target_metadata."""
+def run_migrations(
+    config: Any,
+    target_metadata: MetaData,
+    *,
+    host: str = "",
+    include_object: IncludeObjectFn | None = None,
+) -> None:
+    """Run Alembic offline or online (sync- or async-driver) against target_metadata.
+
+    `include_object` - фильтр autogenerate alembic, например архивные таблицы без моделей.
+    """
     from alembic import context
 
     _connect_args = _connect_args_for_host(host)
@@ -77,12 +89,17 @@ def run_migrations(config: Any, target_metadata: MetaData, *, host: str = "") ->
             target_metadata=target_metadata,
             literal_binds=True,
             dialect_opts={"paramstyle": "named"},
+            include_object=include_object,
         )
         with context.begin_transaction():
             context.run_migrations()
 
     def do_run_migrations(connection: Connection) -> None:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            include_object=include_object,
+        )
         with context.begin_transaction():
             context.run_migrations()
 

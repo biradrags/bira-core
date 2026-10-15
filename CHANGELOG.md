@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.6.1 (2026-10-15)
+
+Не breaking - необязательный параметр с прежним поведением по умолчанию.
+
+### Новое
+
+- `db.alembic.run_migrations(..., include_object=...)` пробрасывает фильтр autogenerate
+  alembic в `context.configure` offline- и online-ветки. Раньше бот на хелпере не мог
+  исключить из `alembic check` таблицы без моделей: metrikamedia держит архивные
+  `legacy_subscription_*` (аудит платежей), и autogenerate предлагал их удалить.
+
 ## v0.6.0 (2026-10-15)
 
 ### Новое
