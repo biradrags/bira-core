@@ -1,17 +1,19 @@
 import asyncio
+import contextlib
 import textwrap
 from pathlib import Path
 
 import pytest
-from alembic import command
+from alembic import command, context
 from alembic.config import Config
-from sqlalchemy import text
+from sqlalchemy import MetaData, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from bira_core.db.alembic import (
     _connect_args_for_host,
     _use_sync_engine,
     resolve_ddl_url,
+    run_migrations,
 )
 
 DSN_ASYNC = "postgresql+asyncpg://test:test@localhost:5499/test"
@@ -63,6 +65,26 @@ def test_connect_args_for_host(host: str, expected: dict[str, object]) -> None:
 )
 def test_use_sync_engine(url: str | None, expected: bool) -> None:
     assert _use_sync_engine(url) is expected
+
+
+@pytest.mark.parametrize("offline", [True, False], ids=["offline", "online-sync"])
+def test_run_migrations_passes_include_object_to_configure(
+    monkeypatch: pytest.MonkeyPatch, offline: bool
+) -> None:
+    def include_object(*_args: object) -> bool:
+        return True
+
+    captured: dict[str, object] = {}
+    monkeypatch.setattr(context, "is_offline_mode", lambda: offline)
+    monkeypatch.setattr(context, "configure", lambda **kw: captured.update(kw))
+    monkeypatch.setattr(context, "begin_transaction", contextlib.nullcontext)
+    monkeypatch.setattr(context, "run_migrations", lambda: None)
+    config = Config()
+    config.set_main_option("sqlalchemy.url", "sqlite://")
+
+    run_migrations(config, MetaData(), include_object=include_object)
+
+    assert captured["include_object"] is include_object
 
 
 def _write_migration_project(tmp_path: Path, table_name: str, url: str) -> Config:
