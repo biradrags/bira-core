@@ -55,6 +55,22 @@ def test_rules_check_allows_request_fromdishka_outside_tgbot(tmp_path: Path) -> 
     assert main(["rules_check", str(tmp_path)]) == 0
 
 
+def test_rules_check_flags_bare_type_ignore_with_space_after_comma(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "thing.py").write_text(
+        "x = foo()  # type: ignore[attr-defined, no-any-return]\n"
+    )
+    assert main(["rules_check", str(tmp_path)]) == 1
+
+
+def test_rules_check_allows_type_ignore_with_reason(tmp_path: Path) -> None:
+    (tmp_path / "thing.py").write_text(
+        "x = foo()  # type: ignore[attr-defined, no-any-return]  # stub без типов\n"
+    )
+    assert main(["rules_check", str(tmp_path)]) == 0
+
+
 def test_module_entrypoint(tmp_path: Path) -> None:
     (tmp_path / "ok.py").write_text("x = 1\n")
     proc = subprocess.run(

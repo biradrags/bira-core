@@ -34,7 +34,7 @@ _TX_CLOSE = re.compile(r"\b(?:release_current_dao|commit|release|rollback)\s*\("
 _TX_NETWORK = re.compile(r"\bawait\s+(?:self\.)?(?:bot|notifier)\.")
 _TX_BOUNDARY = re.compile(r"^\s*(?:async\s+def|def|class)\s")
 _ASSERT_NONE = re.compile(r"\bassert\s+[\w.\[\]'\"]+\s+is\s+not\s+None\b")
-_TYPE_IGNORE_BARE = re.compile(r"#\s*type:\s*ignore\[[a-z0-9_,-]+\]\s*$")
+_TYPE_IGNORE_BARE = re.compile(r"#\s*type:\s*ignore\[[a-z0-9_, -]+\]\s*$")
 _DISHKA_REQUEST = re.compile(r"\bFromDishka\[\s*\w*(?:Dao|DAO|Service)\s*\]")
 _SKIP_DIRS = {
     ".venv",
