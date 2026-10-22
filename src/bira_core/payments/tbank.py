@@ -76,7 +76,7 @@ class TBankClient:
 
     @retry(
         stop=stop_after_attempt(2),
-        wait=wait_exponential_jitter(initial=0.5, max=2.0),
+        wait=wait_exponential_jitter(multiplier=0.5, max=2.0),
         retry=retry_if_exception_type(TBankNetworkError),
         reraise=True,
     )
@@ -96,9 +96,11 @@ class TBankClient:
             data = json.loads(raw)
         except (aiohttp.ClientError, TimeoutError) as exc:
             raise TBankNetworkError(str(exc)) from exc
+        except UnicodeDecodeError as exc:
+            raise TBankNetworkError("undecodable response body") from exc
         except ValueError as exc:
-            # обрезанный JSON банка несёт PaymentURL и данные карты: превью только у не-JSON тел
-            preview = "" if raw.lstrip()[:1] in ("{", "[") else raw[:200]
+            # обрезанный JSON банка несёт PaymentURL и данные карты: превью только у HTML шлюза
+            preview = raw[:200] if raw.lstrip().startswith("<") else ""
             raise TBankNetworkError(
                 f"invalid response body ({len(raw)} chars): {preview!r}"
             ) from exc

@@ -9,17 +9,24 @@
 - `payments.tbank.TBankClient`: тело ответа с `Content-Type: application/json`, не
   разбирающееся как JSON (обрезанный ответ, HTML шлюза с таким заголовком), уходило из
   `_post` сырым `json.JSONDecodeError` мимо ACL ботов. Теперь `TBankNetworkError` с
-  длиной тела и, для не-JSON тел (HTML шлюза), первыми 200 символами; обрезанный JSON
-  банка в сообщение не попадает (в нём бывают ссылка оплаты и данные карты). Исключение
+  длиной тела и, для HTML шлюза (тело начинается с `<`), первыми 200 символами; любое
+  другое тело, в том числе обрезанный JSON банка со ссылкой оплаты и данными карты,
+  в сообщение не попадает. Исключение
   идёт в тот же один ретрай, что и сетевые сбои, включая `/Cancel`.
   Тело читается текстом и разбирается `json.loads`, поэтому `Content-Type` больше не
-  проверяется.
+  проверяется. Недекодируемое тело даёт `TBankNetworkError("undecodable response body")`.
+- `payments.tbank`: `wait_exponential_jitter(initial=...)` в tenacity 9.2.1 deprecated,
+  и `DeprecationWarning` летел при импорте модуля, поэтому бот с `filterwarnings = error`
+  не импортировал `bira_core.payments.tbank`. Заменено на `multiplier=0.5` (паузы те же).
 - `rules_check`: чек `type-ignore-why` не видел голый `# type: ignore[a, b]` - регэксп
   не пускал пробел после запятой. При бампе пина новые срабатывания закрывать причиной
   после кода или `# type-ignore-ok`.
 
 ### Известное
 
+- Extra `payments` требует `tenacity>=9.2.1`: параметр `multiplier` появился только в
+  этой версии, в 9.1.4 и ниже `wait_exponential_jitter` его не принимает. Бот на
+  `tenacity<9.2.1` при бампе пина получит новую версию.
 - На SQLAlchemy 2.1 `BaseDAO` вызывает `Session.flush(objects)` и получает
   `SADeprecationWarning`; тесты на 2.1.6 зелёные, правка `BaseDAO` - отдельным релизом.
 
