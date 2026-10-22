@@ -13,13 +13,20 @@
   банка в сообщение не попадает (в нём бывают ссылка оплаты и данные карты). Исключение
   идёт в тот же один ретрай, что и сетевые сбои, включая `/Cancel`.
   Тело читается текстом и разбирается `json.loads`, поэтому `Content-Type` больше не
-  проверяется.
+  проверяется. Недекодируемое тело даёт `TBankNetworkError("undecodable response body")`;
+  превью не показывается и у JSON с BOM в начале.
+- `payments.tbank`: `wait_exponential_jitter(initial=...)` в tenacity 9.2.1 deprecated,
+  и `DeprecationWarning` летел при импорте модуля, поэтому бот с `filterwarnings = error`
+  не импортировал `bira_core.payments.tbank`. Заменено на `multiplier=0.5` (паузы те же).
 - `rules_check`: чек `type-ignore-why` не видел голый `# type: ignore[a, b]` - регэксп
   не пускал пробел после запятой. При бампе пина новые срабатывания закрывать причиной
   после кода или `# type-ignore-ok`.
 
 ### Известное
 
+- Extra `payments` требует `tenacity>=9.2.1`: параметр `multiplier` появился только в
+  этой версии, в 9.1.4 и ниже `wait_exponential_jitter` его не принимает. Бот на
+  `tenacity<9.2.1` при бампе пина получит новую версию.
 - На SQLAlchemy 2.1 `BaseDAO` вызывает `Session.flush(objects)` и получает
   `SADeprecationWarning`; тесты на 2.1.6 зелёные, правка `BaseDAO` - отдельным релизом.
 
