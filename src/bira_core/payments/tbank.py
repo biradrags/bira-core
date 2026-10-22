@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import json
 import ssl
 from collections.abc import Mapping
-from typing import Any, cast
+from typing import Any
 
 import aiohttp
 from tenacity import (
@@ -83,6 +84,7 @@ class TBankClient:
         body = dict(payload)
         body.setdefault("TerminalKey", self._terminal_key)
         body["Token"] = build_tbank_token(body, self._password)
+        raw = ""
         try:
             async with self._session.post(
                 f"{self._api_base_url}{path}",
@@ -90,9 +92,13 @@ class TBankClient:
                 timeout=aiohttp.ClientTimeout(total=10),
                 ssl=self._ssl_context,
             ) as resp:
-                data = cast(dict[str, Any], await resp.json())
+                raw = await resp.text()
+            data = json.loads(raw)
         except (aiohttp.ClientError, TimeoutError) as exc:
             raise TBankNetworkError(str(exc)) from exc
+        except ValueError as exc:
+            # JSONDecodeError и UnicodeDecodeError: прокси или шлюз отдал не JSON
+            raise TBankNetworkError(f"invalid response body: {raw[:200]!r}") from exc
         if not isinstance(data, dict):
             raise TBankNetworkError("unexpected response format")
         return data
