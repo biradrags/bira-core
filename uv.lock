@@ -481,7 +481,7 @@ dev = [
     { name = "redis", specifier = ">=5" },
     { name = "ruff", specifier = "==0.16.0" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
-    { name = "tenacity", specifier = ">=8" },
+    { name = "tenacity", specifier = ">=9.2.1" },
 ]
 
 [[package]]

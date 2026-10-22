@@ -15,12 +15,23 @@ TRUNCATED_JSON = (
     '{"TerminalKey":"TERMINAL-synthetic-1","Success":true,'
     '"PaymentURL":"https://pay.example/secret-link","Paym'
 )
+# Невидимые символы собраны через chr(): литерал в исходнике теряется при правке.
+JSON_PREFIXES = [
+    "",
+    chr(0xFEFF),
+    " \n" + chr(0xFEFF),
+    chr(0xA0),
+    chr(0x0B),
+    chr(0x2028),
+    chr(0),
+    ")]}'\n",
+]
 
 
 async def _call_against(
     method: str, bodies: list[str | bytes]
-) -> tuple[dict[str, Any], int]:
-    """Сервер отвечает bodies по очереди; вернуть ответ метода клиента и число вызовов."""
+) -> tuple[dict[str, Any] | tbank.TBankNetworkError, int]:
+    """Сервер отвечает bodies по очереди; вернуть итог вызова клиента и число запросов."""
     calls = 0
 
     async def handler(request: web.Request) -> web.Response:
@@ -36,6 +47,7 @@ async def _call_against(
     app = web.Application()
     app.router.add_post("/Init", handler)
     app.router.add_post("/Cancel", handler)
+    outcome: dict[str, Any] | tbank.TBankNetworkError
     async with TestServer(app) as server, aiohttp.ClientSession() as session:
         client = tbank.TBankClient(
             terminal_key=TERMINAL_KEY,
@@ -43,48 +55,54 @@ async def _call_against(
             api_base_url=str(server.make_url("")),
             session=session,
         )
-        result = await getattr(client, method)({"Amount": 100, "OrderId": "1"})
-    return result, calls
+        try:
+            outcome = await getattr(client, method)({"Amount": 100, "OrderId": "1"})
+        except tbank.TBankNetworkError as exc:
+            outcome = exc
+    return outcome, calls
 
 
-async def test_non_json_body_is_network_error_with_body_preview() -> None:
-    with pytest.raises(tbank.TBankNetworkError) as info:
-        await _call_against("init", ["<html>502 Bad Gateway</html>"])
+async def test_html_body_is_network_error_with_body_preview() -> None:
+    outcome, calls = await _call_against("init", ["<html>502 Bad Gateway</html>"])
 
-    assert "502 Bad Gateway" in str(info.value)
+    assert isinstance(outcome, tbank.TBankNetworkError)
+    assert "502 Bad Gateway" in str(outcome)
+    assert calls == 2
 
 
-@pytest.mark.parametrize("prefix", ["", "﻿", " \n﻿"])
+@pytest.mark.parametrize("prefix", JSON_PREFIXES)
 async def test_truncated_json_body_does_not_leak_into_message(prefix: str) -> None:
-    with pytest.raises(tbank.TBankNetworkError) as info:
-        await _call_against("init", [prefix + TRUNCATED_JSON])
+    outcome, _ = await _call_against("init", [prefix + TRUNCATED_JSON])
 
-    message = str(info.value)
+    assert isinstance(outcome, tbank.TBankNetworkError)
+    message = str(outcome)
     assert "secret-link" not in message
     assert TERMINAL_KEY not in message
 
 
 async def test_undecodable_body_message_says_so() -> None:
-    with pytest.raises(tbank.TBankNetworkError) as info:
-        await _call_against("init", [b'\xff\xfe{"a"'])
+    outcome, calls = await _call_against("init", [b'\xff\xfe{"a"'])
 
-    message = str(info.value)
-    assert "undecodable" in message
-    assert "0 chars" not in message
+    assert isinstance(outcome, tbank.TBankNetworkError)
+    assert "undecodable" in str(outcome)
+    assert "0 chars" not in str(outcome)
+    assert calls == 2
 
 
 async def test_invalid_body_is_retried_once_then_succeeds() -> None:
-    result, calls = await _call_against(
+    outcome, calls = await _call_against(
         "init", ["<html>502</html>", '{"Success":true}']
     )
 
-    assert result == {"Success": True}
+    assert outcome == {"Success": True}
     assert calls == 2
 
 
 async def test_cancel_with_invalid_body_is_network_error_after_one_retry() -> None:
-    with pytest.raises(tbank.TBankNetworkError):
-        await _call_against("cancel", ["<html>502</html>"])
+    outcome, calls = await _call_against("cancel", ["<html>502</html>"])
+
+    assert isinstance(outcome, tbank.TBankNetworkError)
+    assert calls == 2
 
 
 def test_module_imports_without_deprecation_warning() -> None:
