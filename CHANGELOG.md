@@ -6,19 +6,22 @@
 
 ### Исправления
 
-- `payments.tbank.TBankClient`: тело ответа, не разбирающееся как JSON (HTML шлюза,
-  обрезанный ответ), раньше уходило из `_post` сырым `json.JSONDecodeError` мимо ACL
-  ботов. Теперь `TBankNetworkError` с первыми 200 символами тела; он идёт в тот же
-  один ретрай, что и сетевые сбои.
+- `payments.tbank.TBankClient`: тело ответа с `Content-Type: application/json`, не
+  разбирающееся как JSON (обрезанный ответ, HTML шлюза с таким заголовком), уходило из
+  `_post` сырым `json.JSONDecodeError` мимо ACL ботов. Теперь `TBankNetworkError` с
+  длиной тела и, для не-JSON тел (HTML шлюза), первыми 200 символами; обрезанный JSON
+  банка в сообщение не попадает (в нём бывают ссылка оплаты и данные карты). Исключение
+  идёт в тот же один ретрай, что и сетевые сбои, включая `/Cancel`.
+  Тело читается текстом и разбирается `json.loads`, поэтому `Content-Type` больше не
+  проверяется.
 - `rules_check`: чек `type-ignore-why` не видел голый `# type: ignore[a, b]` - регэксп
   не пускал пробел после запятой. При бампе пина новые срабатывания закрывать причиной
   после кода или `# type-ignore-ok`.
 
-### Зависимости
+### Известное
 
-- `uv.lock` обновлён: `sqlalchemy` 2.1.6 (локфайл либы; `pyproject` по-прежнему `>=2.0`),
-  `maxo` 0.9.1, `mypy` 2.4.0. На 2.1 `Session.flush(objects)` в `BaseDAO` даёт
-  `SADeprecationWarning`.
+- На SQLAlchemy 2.1 `BaseDAO` вызывает `Session.flush(objects)` и получает
+  `SADeprecationWarning`; тесты на 2.1.6 зелёные, правка `BaseDAO` - отдельным релизом.
 
 ## v0.6.1 (2026-10-15)
 

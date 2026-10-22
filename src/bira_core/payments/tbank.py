@@ -97,8 +97,11 @@ class TBankClient:
         except (aiohttp.ClientError, TimeoutError) as exc:
             raise TBankNetworkError(str(exc)) from exc
         except ValueError as exc:
-            # JSONDecodeError и UnicodeDecodeError: прокси или шлюз отдал не JSON
-            raise TBankNetworkError(f"invalid response body: {raw[:200]!r}") from exc
+            # обрезанный JSON банка несёт PaymentURL и данные карты: превью только у не-JSON тел
+            preview = "" if raw.lstrip()[:1] in ("{", "[") else raw[:200]
+            raise TBankNetworkError(
+                f"invalid response body ({len(raw)} chars): {preview!r}"
+            ) from exc
         if not isinstance(data, dict):
             raise TBankNetworkError("unexpected response format")
         return data
