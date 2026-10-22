@@ -9,12 +9,12 @@
 - `payments.tbank.TBankClient`: тело ответа с `Content-Type: application/json`, не
   разбирающееся как JSON (обрезанный ответ, HTML шлюза с таким заголовком), уходило из
   `_post` сырым `json.JSONDecodeError` мимо ACL ботов. Теперь `TBankNetworkError` с
-  длиной тела и, для не-JSON тел (HTML шлюза), первыми 200 символами; обрезанный JSON
-  банка в сообщение не попадает (в нём бывают ссылка оплаты и данные карты). Исключение
+  длиной тела и, для HTML шлюза (тело начинается с `<`), первыми 200 символами; любое
+  другое тело, в том числе обрезанный JSON банка со ссылкой оплаты и данными карты,
+  в сообщение не попадает. Исключение
   идёт в тот же один ретрай, что и сетевые сбои, включая `/Cancel`.
   Тело читается текстом и разбирается `json.loads`, поэтому `Content-Type` больше не
-  проверяется. Недекодируемое тело даёт `TBankNetworkError("undecodable response body")`;
-  превью не показывается и у JSON с BOM в начале.
+  проверяется. Недекодируемое тело даёт `TBankNetworkError("undecodable response body")`.
 - `payments.tbank`: `wait_exponential_jitter(initial=...)` в tenacity 9.2.1 deprecated,
   и `DeprecationWarning` летел при импорте модуля, поэтому бот с `filterwarnings = error`
   не импортировал `bira_core.payments.tbank`. Заменено на `multiplier=0.5` (паузы те же).
