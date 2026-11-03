@@ -2,6 +2,7 @@ import asyncio
 from collections.abc import AsyncIterator
 
 import pytest
+from redis import VERSION as REDIS_VERSION
 from redis.asyncio.connection import SSLConnection
 
 from bira_core.redis import client as redis_client
@@ -11,10 +12,11 @@ from bira_core.redis.client import make_redis_client
 class FakeRedis:
     """RESP-сервер: на каждую команду +OK, кроме тех соединений, где велено молчать."""
 
-    def __init__(self, *, silent_connections: set[int]) -> None:
-        self.silent_connections = silent_connections
+    def __init__(self) -> None:
+        self.silent_connections: set[int] = set()
         self.connections = 0
         self.writers: list[asyncio.StreamWriter] = []
+        self.url = ""
 
     async def handle(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
@@ -50,62 +52,47 @@ async def _read_command(reader: asyncio.StreamReader) -> list[bytes]:
 
 
 @pytest.fixture
-def short_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(redis_client, "DEFAULT_SOCKET_TIMEOUT", 0.2)
-
-
-async def _serve(fake: FakeRedis) -> AsyncIterator[str]:
+async def fake_redis() -> AsyncIterator[FakeRedis]:
+    fake = FakeRedis()
     server = await asyncio.start_server(fake.handle, "127.0.0.1", 0)
     port = server.sockets[0].getsockname()[1]
+    fake.url = f"redis://:secret@127.0.0.1:{port}/0"
     async with server:
-        yield f"redis://:secret@127.0.0.1:{port}/0"
+        yield fake
 
 
-@pytest.fixture
-async def hung_first_auth() -> AsyncIterator[tuple[FakeRedis, str]]:
-    fake = FakeRedis(silent_connections={1})
-    async for url in _serve(fake):
-        yield fake, url
-
-
-@pytest.fixture
-async def healthy() -> AsyncIterator[tuple[FakeRedis, str]]:
-    fake = FakeRedis(silent_connections=set())
-    async for url in _serve(fake):
-        yield fake, url
-
-
-@pytest.mark.usefixtures("short_timeout")
 async def test_new_connection_survives_hung_auth(
-    hung_first_auth: tuple[FakeRedis, str],
+    fake_redis: FakeRedis, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    fake, url = hung_first_auth
-    client = make_redis_client(url)
+    monkeypatch.setattr(redis_client, "DEFAULT_SOCKET_TIMEOUT", 0.2)
+    fake_redis.silent_connections = {1}
+    client = make_redis_client(fake_redis.url)
     try:
         assert await client.set("k", "v") is True
     finally:
         await client.aclose()
-    assert fake.connections == 2
+    assert fake_redis.connections == 2
 
 
 async def test_rediss_url_keeps_tls_connection() -> None:
+    expected = (
+        redis_client._HandshakeRetrySSLConnection
+        if REDIS_VERSION < (7, 2)
+        else SSLConnection
+    )
     client = make_redis_client("rediss://:secret@127.0.0.1:6379/0")
     try:
-        assert issubclass(client.connection_pool.connection_class, SSLConnection)
+        assert client.connection_pool.connection_class is expected
     finally:
         await client.aclose()
 
 
-@pytest.mark.usefixtures("short_timeout")
-async def test_live_connection_survives_server_drop(
-    healthy: tuple[FakeRedis, str],
-) -> None:
-    fake, url = healthy
-    client = make_redis_client(url)
+async def test_live_connection_survives_server_drop(fake_redis: FakeRedis) -> None:
+    client = make_redis_client(fake_redis.url)
     try:
         assert await client.set("k", "v") is True
-        fake.writers[0].transport.abort()
+        fake_redis.writers[0].transport.abort()
         assert await client.set("k", "v") is True
     finally:
         await client.aclose()
-    assert fake.connections == 2
+    assert fake_redis.connections == 2

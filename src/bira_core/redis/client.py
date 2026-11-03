@@ -24,7 +24,7 @@ _RECONNECT_ERRORS: tuple[type[BaseException], ...] = (
 
 
 def redis_connection_kwargs(*, decode_responses: bool = True) -> dict[str, Any]:
-    """Default kwargs for redis.from_url (keepalive, retry, decode)."""
+    """Kwargs for redis.from_url; handshake retry on redis-py < 7.2 needs make_redis_client."""
     return {
         "decode_responses": decode_responses,
         "socket_keepalive": True,
@@ -39,15 +39,12 @@ def redis_connection_kwargs(*, decode_responses: bool = True) -> dict[str, Any]:
 
 
 def make_redis_client(url: str, *, decode_responses: bool = True) -> redis.Redis:
-    """from_url client with fleet reconnect and decode_responses default.
-
-    On redis-py < 7.2 also retries the AUTH/HELLO handshake of a new connection.
-    """
+    """from_url client with fleet reconnect, handshake retry and decode default."""
     client = redis.from_url(
         url,
         **redis_connection_kwargs(decode_responses=decode_responses),
     )
-    # redis-py 7.2 (#3863) сам ретраит connect вместе с рукопожатием, ниже - бэкпорт
+    # бэкпорт redis-py 7.2 (#3863), снести вместе с классами ниже при полу redis>=7.2
     if REDIS_VERSION < (7, 2):
         pool = client.connection_pool
         pool.connection_class = _HANDSHAKE_RETRY.get(
