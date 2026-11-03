@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.6.3 (2026-11-03)
+
+Не breaking - исправление.
+
+### Исправления
+
+- `redis.client.make_redis_client`: на redis-py < 7.2 рукопожатие нового соединения
+  (AUTH, HELLO, SELECT) шло вне `Retry`, повторялся только TCP-connect. Сервер, не
+  ответивший на AUTH за `socket_timeout`, ронял команду `TimeoutError: Timeout reading
+  from ...` без единого повтора. Теперь клиент повторяет connect вместе с рукопожатием -
+  бэкпорт redis-py 7.2 (redis/redis-py#3863). На redis-py >= 7.2 работает штатный
+  `connect`, бэкпорт не включается. `redis_connection_kwargs` с собственным
+  `redis.from_url` бэкпорт не получает.
+
+### Известное
+
+- Extra `redis` требует `redis>=6.3`: бэкпорт зовёт
+  `connect_check_health(retry_socket_connect=False)`, которого нет в 6.2 и ниже.
+
 ## v0.6.2 (2026-10-22)
 
 Не breaking - исправления.

@@ -53,6 +53,8 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --all-extras
       - run: uv run pytest -q -n 2 --dist loadgroup
+      # бэкпорт ретрая рукопожатия живёт только на redis-py < 7.2, на котором сидит флот
+      - run: uv run --with 'redis>=6.3,<7' pytest -q tests/redis
 
   smoke-wheel:
     runs-on: ubuntu-latest
