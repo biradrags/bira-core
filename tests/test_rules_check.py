@@ -71,6 +71,42 @@ def test_rules_check_allows_type_ignore_with_reason(tmp_path: Path) -> None:
     assert main(["rules_check", str(tmp_path)]) == 0
 
 
+def test_rules_check_flags_xff_without_fly_client_ip(tmp_path: Path) -> None:
+    (tmp_path / "utils.py").write_text(
+        'def client_ip(request):\n    return request.headers.get("X-Forwarded-For")\n'
+    )
+    assert main(["rules_check", str(tmp_path)]) == 1
+
+
+def test_rules_check_flags_xff_when_fly_client_ip_is_in_other_function(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "utils.py").write_text(
+        "def fly(request):\n"
+        '    return request.headers.get("Fly-Client-IP")\n'
+        "\n"
+        "def client_ip(request):\n"
+        "    # Fly-Client-IP тут не читаем\n"
+        '    return request.headers.getone("x-forwarded-for")\n'
+    )
+    assert main(["rules_check", str(tmp_path)]) == 1
+
+
+def test_rules_check_allows_xff_fallback_after_fly_client_ip(tmp_path: Path) -> None:
+    (tmp_path / "utils.py").write_text(
+        "def client_ip(request):\n"
+        '    fly_ip = request.headers.get("Fly-Client-IP")\n'
+        "    if fly_ip:\n"
+        "        return fly_ip\n"
+        "\n"
+        "    def first(raw):\n"
+        "        return raw.split(',')[0]\n"
+        "\n"
+        '    return first(request.headers["X-Forwarded-For"])\n'
+    )
+    assert main(["rules_check", str(tmp_path)]) == 0
+
+
 def test_module_entrypoint(tmp_path: Path) -> None:
     (tmp_path / "ok.py").write_text("x = 1\n")
     proc = subprocess.run(

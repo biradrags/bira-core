@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Добавлено
+
+- `rules_check`: чек `xff-trust` - чтение `X-Forwarded-For` из `headers` без
+  предшествующего `Fly-Client-IP` в той же функции. XFF пишет клиент, на Fly настоящий
+  IP проставляет edge в `Fly-Client-IP`; XFF допустим только фолбэком после него.
+  Глушится `# xff-trust-ok`.
+
 ## v0.6.3 (2026-11-03)
 
 Не breaking - исправление.
