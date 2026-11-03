@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from bira_core.redis.client import make_redis_client, redis_connection_kwargs
 
@@ -12,14 +12,14 @@ def test_redis_connection_kwargs_shape() -> None:
 
 def test_make_redis_client_default_decode_responses() -> None:
     with patch("redis.asyncio.from_url") as from_url:
-        from_url.return_value = object()
+        from_url.return_value = MagicMock()
         make_redis_client("redis://localhost:6379/0")
         assert from_url.call_args.kwargs["decode_responses"] is True
 
 
 def test_make_redis_client_uses_from_url() -> None:
     with patch("redis.asyncio.from_url") as from_url:
-        from_url.return_value = object()
+        from_url.return_value = MagicMock()
         make_redis_client("redis://localhost:6379/0", decode_responses=False)
         from_url.assert_called_once()
         args, kwargs = from_url.call_args

@@ -392,7 +392,7 @@ wheels = [
 
 [[package]]
 name = "bira-core"
-version = "0.6.2"
+version = "0.6.3"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
@@ -458,7 +458,7 @@ requires-dist = [
     { name = "maxo", marker = "extra == 'max'", specifier = ">=0.8,<1.0" },
     { name = "pydantic", marker = "extra == 'db'", specifier = ">=2" },
     { name = "pytest", marker = "extra == 'testing'", specifier = ">=8" },
-    { name = "redis", marker = "extra == 'redis'", specifier = ">=5" },
+    { name = "redis", marker = "extra == 'redis'", specifier = ">=6.3" },
     { name = "sqlalchemy", extras = ["asyncio"], marker = "extra == 'db'", specifier = ">=2.0" },
     { name = "tenacity", marker = "extra == 'payments'", specifier = ">=9.2.1" },
 ]
@@ -478,7 +478,7 @@ dev = [
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-asyncio", specifier = ">=0.24" },
     { name = "pytest-xdist", specifier = ">=3.5" },
-    { name = "redis", specifier = ">=5" },
+    { name = "redis", specifier = ">=6.3" },
     { name = "ruff", specifier = "==0.16.0" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
     { name = "tenacity", specifier = ">=9.2.1" },
