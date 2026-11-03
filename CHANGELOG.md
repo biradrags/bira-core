@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## v0.6.4 (2026-11-03)
+
+Не breaking - новый чек.
 
 ### Добавлено
 
