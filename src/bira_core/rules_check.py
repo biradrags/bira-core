@@ -36,6 +36,11 @@ _TX_BOUNDARY = re.compile(r"^\s*(?:async\s+def|def|class)\s")
 _ASSERT_NONE = re.compile(r"\bassert\s+[\w.\[\]'\"]+\s+is\s+not\s+None\b")
 _TYPE_IGNORE_BARE = re.compile(r"#\s*type:\s*ignore\[[a-z0-9_, -]+\]\s*$")
 _DISHKA_REQUEST = re.compile(r"\bFromDishka\[\s*\w*(?:Dao|DAO|Service)\s*\]")
+_XFF_READ = re.compile(
+    r"""\b\w*headers(?:\.get(?:one|all)?\(|\[)\s*['"]x-forwarded-for['"]""",
+    re.IGNORECASE,
+)
+_FLY_CLIENT_IP = re.compile(r"""['"]fly-client-ip['"]""", re.IGNORECASE)
 _SKIP_DIRS = {
     ".venv",
     ".git",
@@ -132,6 +137,24 @@ def _tx_network_hits(lines: list[str]) -> list[tuple[int, str, int]]:
     return hits
 
 
+def _xff_trust_hits(lines: list[str]) -> list[tuple[int, str]]:
+    # XFF пишет клиент: допустим только фолбэком после Fly-Client-IP в той же функции
+    hits: list[tuple[int, str]] = []
+    fly_indent: int | None = None
+    for i, line in enumerate(lines, 1):
+        indent = len(line) - len(line.lstrip())
+        # вложенный def не выходит из функции, где прочитан Fly-Client-IP
+        if fly_indent is not None and _TX_BOUNDARY.search(line) and indent < fly_indent:
+            fly_indent = None
+        if line.lstrip().startswith("#"):
+            continue
+        if _FLY_CLIENT_IP.search(line):
+            fly_indent = indent if fly_indent is None else min(fly_indent, indent)
+        elif fly_indent is None and _XFF_READ.search(line):
+            hits.append((i, line))
+    return hits
+
+
 _CHECKS = (
     ("money-float", "money-ok", _money),
     ("layer-import", "layer-import-ok", _layer_import),
@@ -178,6 +201,9 @@ def main(argv: list[str] | None = None) -> int:
             if "# tx-network-ok" in line:
                 continue
             hits.append(("tx-network", p, i, f"{line.strip()} (write at :{wline})"))
+        for i, line in _xff_trust_hits(lines):
+            if "# xff-trust-ok" not in line:
+                hits.append(("xff-trust", p, i, line.strip()))
     if hits:
         print(
             "rules_check FAIL (suppress a verified false positive with `# <token>-ok`):"
