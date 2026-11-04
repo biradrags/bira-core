@@ -11,7 +11,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlalchemy.sql.schema import MetaData
 
-from bira_core.db.url import build_url
+from bira_core.db.url import RoleDsn, build_url
 
 if TYPE_CHECKING:
     from alembic.runtime.environment import IncludeObjectFn
@@ -24,9 +24,12 @@ def resolve_ddl_url(
     host: str,
     port: int,
     name: str,
-    env_override: str = "DATABASE_URL",
+    env_override: str = "ALEMBIC_DATABASE_URL",
 ) -> str:
-    """DATABASE_URL override or DDL-role DSN with password guard."""
+    """DDL-role DSN with password guard; override только из явного ключа миграций.
+
+    `DATABASE_URL` рантайма не читается.
+    """
     override = os.environ.get(env_override)
     if override:
         return override
@@ -35,20 +38,9 @@ def resolve_ddl_url(
             "DB_DDL_PASSWORD не задан - миграциям нужна DDL-роль, отказ запускаться под DML"
         )
     url = build_url(
-        _Dsn(role=role, password=password, host=host, port=port, name=name),
+        RoleDsn(host=host, port=port, user=role, password=password, name=name),
     )
     return url.render_as_string(hide_password=False)
-
-
-class _Dsn:
-    def __init__(
-        self, *, role: str, password: str, host: str, port: int, name: str
-    ) -> None:
-        self.user = role
-        self.password = password
-        self.host = host
-        self.port = port
-        self.name = name
 
 
 def _connect_args_for_host(host: str) -> dict[str, object]:

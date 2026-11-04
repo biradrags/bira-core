@@ -15,28 +15,52 @@ from bira_core.db.alembic import (
     resolve_ddl_url,
     run_migrations,
 )
+from bira_core.db.url import RoleDsn
 
 DSN_ASYNC = "postgresql+asyncpg://test:test@localhost:5499/test"
 
 
 def test_env_override_wins(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://x:y@h:5/z")
+    monkeypatch.setenv("ALEMBIC_DATABASE_URL", "postgresql+asyncpg://x:y@h:5/z")
     url = resolve_ddl_url(role="r", password="p", host="db", port=5432, name="app")
     assert url == "postgresql+asyncpg://x:y@h:5/z"
 
 
+def test_runtime_database_url_ignored(monkeypatch: pytest.MonkeyPatch) -> None:
+    runtime = "postgresql+asyncpg://x:y@h:5/z"
+    monkeypatch.setenv("DATABASE_URL", runtime)
+    monkeypatch.delenv("ALEMBIC_DATABASE_URL", raising=False)
+    url = resolve_ddl_url(
+        role="app_ddl", password="p", host="db", port=5432, name="app"
+    )
+    assert "app_ddl" in url
+    assert url != runtime
+
+
+def test_empty_alembic_override_ignored(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ALEMBIC_DATABASE_URL", "")
+    url = resolve_ddl_url(
+        role="app_ddl", password="p", host="db", port=5432, name="app"
+    )
+    assert "app_ddl" in url
+
+
 def test_empty_ddl_password_hard_fails(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("ALEMBIC_DATABASE_URL", raising=False)
     with pytest.raises(RuntimeError):
         resolve_ddl_url(role="r", password="", host="db", port=5432, name="app")
 
 
 def test_builds_ddl_url(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("ALEMBIC_DATABASE_URL", raising=False)
     url = resolve_ddl_url(
         role="app_ddl", password="p", host="db.flycast", port=5432, name="app"
     )
     assert "app_ddl" in url and "db.flycast" in url
+
+
+def test_role_dsn_repr_hides_password() -> None:
+    assert "secret" not in repr(RoleDsn("h", 1, "u", "secret", "n"))
 
 
 @pytest.mark.parametrize(
