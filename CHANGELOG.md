@@ -1,5 +1,43 @@
 # Changelog
 
+## v0.6.5 (2026-11-04)
+
+Breaking по поведению - см. «Поведение». Удалений API нет.
+
+### Добавлено
+
+- `db.settings`: адаптеры DSN поверх полей конфига - Protocol `DbTenantFields` (поля
+  `DbTenantSettings`), `dml_dsn(cfg)` и `ddl_dsn(cfg)` дают `RoleDsn` под роль,
+  `ddl_url(cfg)` - `resolve_ddl_url` одной строкой в `alembic/env.py` (#23).
+- `db.url.RoleDsn` - конкретный `DbDsn` под одну роль; пароль скрыт в `repr`, объект
+  не логировать. Заменил внутренний `_Dsn` в `db.alembic`.
+- `di.db.DbProvider`: keyword-only `pool_timeout`, `ssl`, `server_settings`,
+  `hide_parameters`, `json_serializer`. `ssl=None` - прежнее автоопределение
+  (`False` для `.flycast`/`.internal`); явное значение уходит в `connect_args` без
+  автоопределения (#15).
+- `log.setup.setup_logging`: `redaction_filter` заменяет штатный `RedactionFilter`
+  (`extra_patterns` тогда игнорируется), `silence` заменяет зашитый список
+  `("aiogram.event", "sqlalchemy.engine", "httpx")` (#18).
+
+### Исправлено
+
+- `tgbot.dialogs.errors.clear_stale_intent`: протухший callback (`query is too old`)
+  ронял хендлер на `callback.answer` до удаления меню; `TelegramBadRequest` теперь
+  глушится (#14).
+- `web.cron.cron_protocol`: на роуте без `{job}` имя джобы в ответе и логе шло с
+  префиксом `cron/`; теперь без него (#16).
+
+### Поведение
+
+- `DbProvider(hide_parameters=True)` по умолчанию: параметры запроса не попадают в
+  текст исключений SQLAlchemy. Для разбора инцидента - `hide_parameters=False`.
+- `DbProvider(json_serializer=...)` по умолчанию `json.dumps(ensure_ascii=False)`:
+  кириллица в JSONB-параметрах читаемая; хранимые данные не меняются.
+- `db.alembic.resolve_ddl_url(env_override=)` по умолчанию `"ALEMBIC_DATABASE_URL"`:
+  `DATABASE_URL` рантайма больше не override миграций. Бот, который отдавал миграциям
+  URL через `DATABASE_URL`, переносит его в `ALEMBIC_DATABASE_URL` или передаёт
+  `env_override="DATABASE_URL"` (#32).
+
 ## v0.6.4 (2026-11-03)
 
 Не breaking - новый чек.
