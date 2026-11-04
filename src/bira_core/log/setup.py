@@ -17,8 +17,10 @@ def setup_logging(
     *,
     extra_patterns: Sequence[str] = (),
     extra_silence: Sequence[str] = (),
+    silence: Sequence[str] = ("aiogram.event", "sqlalchemy.engine", "httpx"),
+    redaction_filter: logging.Filter | None = None,
 ) -> None:
-    """Configure root logger; env LOG_LEVEL applies only when level is None."""
+    """Root logger setup; LOG_LEVEL only if level is None. Custom filter/silence replace defaults."""
     if level is None:
         env = os.environ.get("LOG_LEVEL", "INFO")
         numeric = logging.getLevelNamesMapping().get(env.upper(), logging.INFO)
@@ -29,14 +31,14 @@ def setup_logging(
 
     handler = logging.StreamHandler()
     handler.setFormatter(LogfmtFormatter())
-    handler.addFilter(RedactionFilter(extra_patterns=extra_patterns))
+    handler.addFilter(
+        redaction_filter or RedactionFilter(extra_patterns=extra_patterns)
+    )
     root = logging.getLogger()
     for existing in root.handlers[:]:
         root.removeHandler(existing)
     root.addHandler(handler)
     root.setLevel(numeric)
     logging.getLogger("aiohttp.access").addFilter(ProbeAccessFilter())
-    for noisy in ("aiogram.event", "sqlalchemy.engine", "httpx"):
-        logging.getLogger(noisy).setLevel(logging.WARNING)
-    for name in extra_silence:
+    for name in (*silence, *extra_silence):
         logging.getLogger(name).setLevel(logging.WARNING)
