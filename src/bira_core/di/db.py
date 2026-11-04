@@ -3,6 +3,7 @@
 import functools
 import json
 from collections.abc import AsyncIterable, Callable, Mapping
+from ssl import SSLContext
 from typing import Any
 
 from dishka import Provider, Scope, provide
@@ -31,17 +32,17 @@ class DbProvider(Provider):
         pool_recycle: int = 1800,
         pool_timeout: float = 5,
         connect_timeout: float | None = None,
-        # None - как сейчас: False для .flycast/.internal, иначе дефолт драйвера
-        ssl: bool | str | None = None,
+        # None - автоопределение: False для .flycast/.internal, иначе дефолт драйвера
+        ssl: bool | str | SSLContext | None = None,
         server_settings: Mapping[str, str] | None = None,
-        # поведение: ПДн из параметров запроса не попадает в текст исключений
+        # ПДн из параметров запроса не попадают в текст исключений и в лог запросов
         hide_parameters: bool = True,
-        # поведение: ensure_ascii=False - кириллица в JSONB читаемая
+        # ensure_ascii=False - кириллица в JSON читаемая
         json_serializer: Callable[[Any], str] = _json_dumps,
     ) -> None:
         """Пул, таймауты и connect_args engine().
 
-        pool_recycle короче простоя, после которого Fly рвёт соединения; `ssl=None` - автоопределение по хосту.
+        pool_recycle короче простоя, после которого Fly рвёт соединения.
         """
         super().__init__()
         self._pool_size = pool_size

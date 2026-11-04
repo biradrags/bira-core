@@ -36,7 +36,9 @@ def setup_logging(
     handler = logging.StreamHandler()
     handler.setFormatter(LogfmtFormatter())
     handler.addFilter(
-        redaction_filter or RedactionFilter(extra_patterns=extra_patterns)
+        redaction_filter
+        if redaction_filter is not None
+        else RedactionFilter(extra_patterns=extra_patterns)
     )
     root = logging.getLogger()
     for existing in root.handlers[:]:

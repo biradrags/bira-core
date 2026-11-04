@@ -1,3 +1,4 @@
+import ssl
 from dataclasses import dataclass
 from typing import Any
 from unittest.mock import AsyncMock
@@ -96,6 +97,9 @@ async def test_db_provider_explicit_ssl_wins(monkeypatch: pytest.MonkeyPatch) ->
     assert kw["connect_args"]["ssl"] == "require"
     kw = await _engine_kwargs(monkeypatch, host="localhost", ssl=False)
     assert kw["connect_args"]["ssl"] is False
+    ctx = ssl.create_default_context()
+    kw = await _engine_kwargs(monkeypatch, host="db.flycast", ssl=ctx)
+    assert kw["connect_args"]["ssl"] is ctx
 
 
 async def test_db_provider_server_settings_and_overrides(

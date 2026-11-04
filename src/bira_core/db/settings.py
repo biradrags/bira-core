@@ -9,7 +9,7 @@ from bira_core.db.url import RoleDsn
 
 
 class DbTenantFields(Protocol):
-    """Поля координат и ролей bira-db; совпадают с DbTenantSettings и с Config семи ботов флота."""
+    """Поля координат и ролей Postgres-тенанта; совпадают с полями DbTenantSettings."""
 
     db_host: str
     db_port: int

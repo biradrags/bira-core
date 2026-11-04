@@ -16,7 +16,7 @@ class DbDsn(Protocol):
     name: str
 
 
-@dataclass
+@dataclass(slots=True)
 class RoleDsn:
     """DbDsn под одну роль; пароль уже раскрыт - объект не логировать."""
 

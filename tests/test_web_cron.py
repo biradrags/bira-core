@@ -55,5 +55,6 @@ async def test_job_name_from_path_without_prefix(
 
     assert (await resp.json())["job"] == "foo"
     done = [r for r in caplog.records if r.getMessage() == "cron job done"]
+    assert len(done) == 1
     assert done[0].job == "foo"
     await client.close()
