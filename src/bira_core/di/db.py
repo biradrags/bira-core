@@ -1,6 +1,9 @@
 """Dishka database session provider."""
 
-from collections.abc import AsyncIterable
+import functools
+import json
+from collections.abc import AsyncIterable, Callable, Mapping
+from typing import Any
 
 from dishka import Provider, Scope, provide
 from sqlalchemy.ext.asyncio import (
@@ -11,6 +14,8 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from bira_core.db.url import DbDsn, build_url
+
+_json_dumps = functools.partial(json.dumps, ensure_ascii=False)
 
 
 class DbProvider(Provider):
@@ -24,14 +29,31 @@ class DbProvider(Provider):
         pool_size: int,
         max_overflow: int,
         pool_recycle: int = 1800,
+        pool_timeout: float = 5,
         connect_timeout: float | None = None,
+        ssl: bool
+        | str
+        | None = None,  # None - как сейчас: False для .flycast/.internal, иначе дефолт драйвера
+        server_settings: Mapping[str, str] | None = None,
+        hide_parameters: bool = True,  # поведение: ПДн из параметров запроса не попадает в текст исключений
+        json_serializer: Callable[
+            [Any], str
+        ] = _json_dumps,  # поведение: ensure_ascii=False - кириллица в JSONB читаемая
     ) -> None:
-        """Пул и таймауты engine(); pool_recycle короче простоя, после которого Fly рвёт соединения."""
+        """Пул, таймауты и connect_args engine(); pool_recycle короче простоя, после которого Fly рвёт соединения.
+
+        `ssl=None` - автоопределение по хосту.
+        """
         super().__init__()
         self._pool_size = pool_size
         self._max_overflow = max_overflow
         self._pool_recycle = pool_recycle
+        self._pool_timeout = pool_timeout
         self._connect_timeout = connect_timeout
+        self._ssl = ssl
+        self._server_settings = server_settings
+        self._hide_parameters = hide_parameters
+        self._json_serializer = json_serializer
 
     @provide
     async def engine(self, dsn: DbDsn) -> AsyncIterable[AsyncEngine]:
@@ -39,8 +61,12 @@ class DbProvider(Provider):
         url = build_url(dsn)
         connect_args: dict[str, object] = {}
         host = (url.host or "").lower()
-        if host.endswith((".flycast", ".internal")):
+        if self._ssl is not None:
+            connect_args["ssl"] = self._ssl
+        elif host.endswith((".flycast", ".internal")):
             connect_args["ssl"] = False
+        if self._server_settings is not None:
+            connect_args["server_settings"] = dict(self._server_settings)
         if self._connect_timeout is not None:
             connect_args["timeout"] = self._connect_timeout
         engine = create_async_engine(
@@ -48,8 +74,10 @@ class DbProvider(Provider):
             pool_pre_ping=True,
             pool_size=self._pool_size,
             max_overflow=self._max_overflow,
-            pool_timeout=5,
+            pool_timeout=self._pool_timeout,
             pool_recycle=self._pool_recycle,
+            hide_parameters=self._hide_parameters,
+            json_serializer=self._json_serializer,
             connect_args=connect_args,
         )
         yield engine
