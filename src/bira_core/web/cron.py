@@ -42,7 +42,9 @@ def cron_protocol() -> Middleware:
 
     @web.middleware
     async def middleware(request: web.Request, handler: _Handler) -> web.StreamResponse:
-        name = request.match_info.get("job") or request.path.lstrip("/")
+        name = request.match_info.get("job") or request.path.lstrip("/").removeprefix(
+            "cron/"
+        )
         lock = _locks.setdefault(name, asyncio.Lock())
         if lock.locked():
             logger.info(
