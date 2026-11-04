@@ -31,18 +31,17 @@ class DbProvider(Provider):
         pool_recycle: int = 1800,
         pool_timeout: float = 5,
         connect_timeout: float | None = None,
-        ssl: bool
-        | str
-        | None = None,  # None - как сейчас: False для .flycast/.internal, иначе дефолт драйвера
+        # None - как сейчас: False для .flycast/.internal, иначе дефолт драйвера
+        ssl: bool | str | None = None,
         server_settings: Mapping[str, str] | None = None,
-        hide_parameters: bool = True,  # поведение: ПДн из параметров запроса не попадает в текст исключений
-        json_serializer: Callable[
-            [Any], str
-        ] = _json_dumps,  # поведение: ensure_ascii=False - кириллица в JSONB читаемая
+        # поведение: ПДн из параметров запроса не попадает в текст исключений
+        hide_parameters: bool = True,
+        # поведение: ensure_ascii=False - кириллица в JSONB читаемая
+        json_serializer: Callable[[Any], str] = _json_dumps,
     ) -> None:
-        """Пул, таймауты и connect_args engine(); pool_recycle короче простоя, после которого Fly рвёт соединения.
+        """Пул, таймауты и connect_args engine().
 
-        `ssl=None` - автоопределение по хосту.
+        pool_recycle короче простоя, после которого Fly рвёт соединения; `ssl=None` - автоопределение по хосту.
         """
         super().__init__()
         self._pool_size = pool_size
