@@ -20,7 +20,11 @@ def setup_logging(
     silence: Sequence[str] = ("aiogram.event", "sqlalchemy.engine", "httpx"),
     redaction_filter: logging.Filter | None = None,
 ) -> None:
-    """Root logger setup; LOG_LEVEL only if level is None. Custom filter/silence replace defaults."""
+    """Root logger setup; env LOG_LEVEL applies only when level is None.
+
+    `redaction_filter` replaces the default (`extra_patterns` ignored);
+    `silence` replaces the default list.
+    """
     if level is None:
         env = os.environ.get("LOG_LEVEL", "INFO")
         numeric = logging.getLevelNamesMapping().get(env.upper(), logging.INFO)
