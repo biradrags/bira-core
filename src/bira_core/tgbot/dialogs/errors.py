@@ -20,7 +20,9 @@ async def clear_stale_intent(error: ErrorEvent) -> None:
     callback = error.update.callback_query
     if callback is None:
         return
-    await callback.answer("Меню устарело")
+    # протухший callback не должен блокировать очистку
+    with suppress(TelegramBadRequest):
+        await callback.answer("Меню устарело")
     message = callback.message
     if message is None:
         return

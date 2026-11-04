@@ -1,5 +1,6 @@
 """DSN builder for async Postgres."""
 
+from dataclasses import dataclass, field
 from typing import Protocol
 
 from sqlalchemy import URL
@@ -12,6 +13,17 @@ class DbDsn(Protocol):
     port: int
     user: str
     password: str
+    name: str
+
+
+@dataclass(slots=True)
+class RoleDsn:
+    """DbDsn под одну роль; пароль уже раскрыт - объект не логировать."""
+
+    host: str
+    port: int
+    user: str
+    password: str = field(repr=False)
     name: str
 
 

@@ -75,8 +75,8 @@ maxo = { git = "https://github.com/biradrags/maxo", rev = "..." }
 | `bira_core.notify.classifier` | `classify_aiogram` |
 | `bira_core.db.base` | `Base`, `NAMING_CONVENTION` |
 | `bira_core.db.dao` | `BaseDAO` |
-| `bira_core.db.url` | `DbDsn`, `build_url` |
-| `bira_core.db.settings` | `DbTenantSettings` |
+| `bira_core.db.url` | `DbDsn`, `RoleDsn`, `build_url` |
+| `bira_core.db.settings` | `DbTenantSettings`, `DbTenantFields`, `dml_dsn`, `ddl_dsn`, `ddl_url` |
 | `bira_core.db.mixins` | `TimestampMixin` |
 | `bira_core.db.alembic` | `resolve_ddl_url`, `run_migrations` |
 | `bira_core.redis.client` | `make_redis_client`, `redis_connection_kwargs` |
