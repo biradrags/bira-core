@@ -11,7 +11,7 @@ Breaking по поведению - см. «Поведение». Удалени�
   `ddl_url(cfg)` - `resolve_ddl_url` одной строкой в `alembic/env.py` (#23).
 - `db.url.RoleDsn` - конкретный `DbDsn` под одну роль; пароль скрыт в `repr`, объект
   не логировать. Заменил внутренний `_Dsn` в `db.alembic`.
-- `di.db.DbProvider`: keyword-only `pool_timeout`, `ssl`, `server_settings`,
+- `di.db.DbProvider`: keyword-only `pool_timeout`, `ssl` (в том числе `SSLContext`), `server_settings`,
   `hide_parameters`, `json_serializer`. `ssl=None` - прежнее автоопределение
   (`False` для `.flycast`/`.internal`); явное значение уходит в `connect_args` без
   автоопределения (#15).
@@ -30,9 +30,11 @@ Breaking по поведению - см. «Поведение». Удалени�
 ### Поведение
 
 - `DbProvider(hide_parameters=True)` по умолчанию: параметры запроса не попадают в
-  текст исключений SQLAlchemy. Для разбора инцидента - `hide_parameters=False`.
+  текст исключений SQLAlchemy и в лог запросов `sqlalchemy.engine`. Для разбора
+  инцидента - `hide_parameters=False`. `pool_timeout` по умолчанию прежний, 5 с.
 - `DbProvider(json_serializer=...)` по умолчанию `json.dumps(ensure_ascii=False)`:
-  кириллица в JSONB-параметрах читаемая; хранимые данные не меняются.
+  кириллица в JSON-параметрах не экранируется. JSONB хранит значение одинаково; в
+  колонке `JSON` (текст) новые записи лягут кириллицей вместо `\uXXXX`.
 - `db.alembic.resolve_ddl_url(env_override=)` по умолчанию `"ALEMBIC_DATABASE_URL"`:
   `DATABASE_URL` рантайма больше не override миграций. Бот, который отдавал миграциям
   URL через `DATABASE_URL`, переносит его в `ALEMBIC_DATABASE_URL` или передаёт
