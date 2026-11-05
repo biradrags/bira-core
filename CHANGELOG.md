@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.6.6 (2026-11-05)
+
+Не breaking - новые модули `bira_core.testing` против класса «проводка»: ошибки сборки,
+которые юниты пропускают, а ловит только смоук.
+
+### Добавлено
+
+- `testing.smoke`: `smoke_import(module, env=, timeout=)` импортирует точку входа
+  (`<pkg>.__main__`) в новом интерпретаторе, ошибка несёт его stderr; `env` ложится поверх
+  `os.environ`. `smoke_imports_test(*modules)` - готовый параметризованный pytest-тест.
+- `testing.wiring`: `assert_container_builds(*providers, context=, requested=, skip_types=)`
+  собирает контейнер dishka и делает `get()` каждой APP- и REQUEST-фабрики и алиаса;
+  `requested` - ключи, которые просят хендлеры (`X` против `X | None`). Все сбои - одним
+  `AssertionError`. Фабрики с сетью или БД - в `skip_types`.
+- `testing.dialogs`: `assert_callback_data_fits(*dialogs, limit=64, item_id=)` - обход окон
+  aiogram_dialog без рендера, байтовая длина `callback_data` с резервом под intent_id.
+  Элементы геттеров (Select, ListGroup) подставляются строкой `item_id` (по умолчанию
+  10-значное число) - передать самый длинный реальный ключ.
+- `testing.redis`: `redis_storage(url, *, prefix)` - контекст-менеджер с aiogram
+  `RedisStorage` на `DefaultKeyBuilder(with_destiny=True)`; недоступный Redis - `RuntimeError`,
+  не skip; ключи `prefix:*` удаляются на выходе.
+
 ## v0.6.5 (2026-11-04)
 
 Breaking по поведению - см. «Поведение». Удалений API нет.
