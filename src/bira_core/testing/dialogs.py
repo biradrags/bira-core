@@ -46,6 +46,7 @@ def _callbacks(widget: object, item_id: str, prefix: str) -> Iterator[str]:
         for child in widget.widgets:
             yield from _callbacks(child, item_id, prefix)
         return
+    # без return: у ScrollingGroup ещё свои кнопки пейджера "<id>:<page>"
     if isinstance(widget, Group):
         for child in widget.buttons:
             yield from _callbacks(child, item_id, prefix)

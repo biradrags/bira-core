@@ -28,11 +28,11 @@ def test_smoke_import_passes_env(tmp_path: Path) -> None:
 
 
 def test_hanging_import_reported(tmp_path: Path) -> None:
-    body = "import sys, time\nsys.stderr.write('connecting\\n'); sys.stderr.flush()\ntime.sleep(5)\n"
+    body = "import sys, time\nsys.stderr.write('connecting\\n'); sys.stderr.flush()\ntime.sleep(3)\n"
     env = _write_module(tmp_path, "hung_entry", body)
 
-    with pytest.raises(AssertionError, match="hung over 1s:\nconnecting"):
-        smoke_import("hung_entry", env=env, timeout=1)
+    with pytest.raises(AssertionError, match="hung over 0.5s:\nconnecting"):
+        smoke_import("hung_entry", env=env, timeout=0.5)
 
 
 test_entrypoints = smoke_imports_test("bira_core.testing.smoke", "json")

@@ -30,7 +30,7 @@ async def redis_storage(url: str, *, prefix: str) -> AsyncIterator[RedisStorage]
     try:
         yield storage
     finally:
-        keys = [key async for key in client.scan_iter(match=f"{prefix}:*")]
+        keys = [key async for key in client.scan_iter(match=f"{prefix}:*", count=1000)]
         if keys:
             await client.delete(*keys)
         await storage.close()
