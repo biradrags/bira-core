@@ -10,9 +10,9 @@ from aiogram_dialog.utils import CB_SEP
 from aiogram_dialog.widgets.kbd import Button, Group, Keyboard, ListGroup
 from aiogram_dialog.widgets.kbd.base import Or
 
-__all__ = ["TELEGRAM_CALLBACK_LIMIT", "assert_callback_data_fits"]
+__all__ = ["assert_callback_data_fits"]
 
-TELEGRAM_CALLBACK_LIMIT = 64
+_TELEGRAM_CALLBACK_LIMIT = 64
 # aiogram_dialog дописывает intent_id + CB_SEP; intent_id - base62 от new_int_id() < 1e10
 _INTENT_RESERVE = len(id_to_str(10**10 - 1)) + len(CB_SEP)
 _DEFAULT_ITEM_ID = "9" * 10
@@ -20,13 +20,9 @@ _DEFAULT_ITEM_ID = "9" * 10
 
 def assert_callback_data_fits(
     *dialogs: Dialog,
-    limit: int = TELEGRAM_CALLBACK_LIMIT,
     item_id: str = _DEFAULT_ITEM_ID,
 ) -> None:
-    """Walk window keyboards without rendering; `item_id` stands in for every getter item.
-
-    Pass the longest real item id (Select/ListGroup keys); default is a 10-digit int.
-    """
+    """Walk keyboards without rendering; `item_id` (longest real getter key) fills item slots."""
     too_long: list[str] = []
     for dialog in dialogs:
         for state, window in dialog.windows.items():
@@ -34,8 +30,8 @@ def assert_callback_data_fits(
                 continue
             for data in _callbacks(window.keyboard, item_id, ""):
                 size = len(data.encode()) + _INTENT_RESERVE
-                if size > limit:
-                    too_long.append(f"{state.state}: {size} > {limit} bytes ({data!r})")
+                if size > _TELEGRAM_CALLBACK_LIMIT:
+                    too_long.append(f"{state.state}: {size} > 64 bytes ({data!r})")
     if too_long:
         raise AssertionError("callback_data over limit:\n" + "\n".join(too_long))
 

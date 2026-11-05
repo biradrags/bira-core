@@ -20,18 +20,20 @@ def smoke_import(
     env: Mapping[str, str] | None = None,
     timeout: float = 30,
 ) -> None:
-    """Import module in a new interpreter; AssertionError carries its stderr.
-
-    `env` is merged over os.environ: entrypoints read config on import.
-    """
-    result = subprocess.run(
-        [sys.executable, "-c", _IMPORT_SNIPPET, module],
-        env={**os.environ, **(env or {})},
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        check=False,
-    )
+    """Import module in a new interpreter, `env` over os.environ; AssertionError carries stderr."""
+    try:
+        result = subprocess.run(
+            [sys.executable, "-c", _IMPORT_SNIPPET, module],
+            env={**os.environ, **(env or {})},
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as e:
+        stderr = e.stderr.decode() if isinstance(e.stderr, bytes) else e.stderr
+        msg = f"import {module} hung over {timeout}s:\n{stderr or ''}"
+        raise AssertionError(msg) from e
     if result.returncode != 0:
         msg = f"import {module} failed (exit {result.returncode}):\n{result.stderr}"
         raise AssertionError(msg)

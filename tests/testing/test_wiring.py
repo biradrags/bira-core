@@ -69,6 +69,23 @@ async def test_missing_context_value_reported() -> None:
         await assert_container_builds(AppProvider())
 
 
+class Event:
+    pass
+
+
+class EventProvider(Provider):
+    scope = Scope.REQUEST
+    event = from_context(provides=Event, scope=Scope.REQUEST)
+
+    @provide
+    def handler_dep(self, event: Event) -> Dao:
+        return Dao()
+
+
+async def test_request_context_value_passed() -> None:
+    await assert_container_builds(EventProvider(), context={Event: Event()})
+
+
 class OrphanProvider(Provider):
     scope = Scope.APP
 

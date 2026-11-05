@@ -1,4 +1,4 @@
-"""aiogram RedisStorage for tests, built the way aiogram_dialog needs it in production."""
+"""aiogram RedisStorage for tests with the destiny key builder aiogram_dialog requires."""
 
 from __future__ import annotations
 
@@ -16,10 +16,7 @@ __all__ = ["redis_storage"]
 
 @asynccontextmanager
 async def redis_storage(url: str, *, prefix: str) -> AsyncIterator[RedisStorage]:
-    """Ping Redis, yield RedisStorage with destiny keys; delete `prefix:*` keys on exit.
-
-    Unreachable Redis raises RuntimeError instead of skipping the test.
-    """
+    """Ping Redis (RuntimeError, not skip), yield destiny-keyed RedisStorage; drop `prefix:*` on exit."""
     client = make_redis_client(url)
     try:
         await client.ping()
@@ -33,6 +30,7 @@ async def redis_storage(url: str, *, prefix: str) -> AsyncIterator[RedisStorage]
     try:
         yield storage
     finally:
-        async for key in client.scan_iter(match=f"{prefix}:*"):
-            await client.delete(key)
+        keys = [key async for key in client.scan_iter(match=f"{prefix}:*")]
+        if keys:
+            await client.delete(*keys)
         await storage.close()

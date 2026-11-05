@@ -16,12 +16,9 @@ async def assert_container_builds(
     requested: Collection[Any] = (),
     skip_types: Collection[Any] = (),
 ) -> None:
-    """get() each APP/REQUEST factory, alias and `requested` key; one AssertionError lists all.
-
-    `requested` - keys handlers ask via FromDishka (`X` vs `X | None`); skip types that hit network or DB.
-    """
-    app_keys: list[tuple[Any, str | None]] = []
-    request_keys: list[tuple[Any, str | None]] = [(t, "") for t in requested]
+    """get() each APP/REQUEST factory, alias and handler-side `requested` key; one error lists all."""
+    app_keys: list[tuple[Any, str]] = []
+    request_keys: list[tuple[Any, str]] = [(t, "") for t in requested]
     for provider in providers:
         component = provider.component
         for factory in provider.factories:
@@ -31,12 +28,12 @@ async def assert_container_builds(
                 request_keys.append((factory.provides.type_hint, component))
         request_keys.extend((a.provides.type_hint, component) for a in provider.aliases)
 
-    container = make_async_container(*providers, context=dict(context or {}))
-    failures: list[str] = []
+    values = dict(context or {})
+    container = make_async_container(*providers, context=values)
     try:
-        await _resolve(container, app_keys, skip_types, failures)
-        async with container() as request:
-            await _resolve(request, request_keys, skip_types, failures)
+        failures = await _resolve(container, app_keys, skip_types)
+        async with container(context=values) as request:
+            failures += await _resolve(request, request_keys, skip_types)
     finally:
         await container.close()
     if failures:
@@ -45,10 +42,10 @@ async def assert_container_builds(
 
 async def _resolve(
     container: AsyncContainer,
-    keys: Iterable[tuple[Any, str | None]],
+    keys: Iterable[tuple[Any, str]],
     skip_types: Collection[Any],
-    failures: list[str],
-) -> None:
+) -> list[str]:
+    failures: list[str] = []
     for type_hint, component in dict.fromkeys(keys):
         if type_hint in skip_types:
             continue
@@ -56,3 +53,4 @@ async def _resolve(
             await container.get(type_hint, component=component)
         except Exception as e:  # noqa: BLE001 - собираем все сбои фабрик в один отчёт
             failures.append(f"{type_hint!r}: {type(e).__name__}: {e}")
+    return failures

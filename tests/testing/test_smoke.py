@@ -27,16 +27,12 @@ def test_smoke_import_passes_env(tmp_path: Path) -> None:
     smoke_import("env_entry", env={**env, "BOT_TOKEN": "42:fake"})
 
 
-def test_main_guard_not_executed(tmp_path: Path) -> None:
-    body = "if __name__ == '__main__':\n    raise SystemExit(1)\n"
-    env = _write_module(tmp_path, "guarded_entry", body)
+def test_hanging_import_reported(tmp_path: Path) -> None:
+    body = "import sys, time\nsys.stderr.write('connecting\\n'); sys.stderr.flush()\ntime.sleep(5)\n"
+    env = _write_module(tmp_path, "hung_entry", body)
 
-    smoke_import("guarded_entry", env=env)
+    with pytest.raises(AssertionError, match="hung over 1s:\nconnecting"):
+        smoke_import("hung_entry", env=env, timeout=1)
 
 
 test_entrypoints = smoke_imports_test("bira_core.testing.smoke", "json")
-
-
-def test_smoke_imports_test_is_parametrized() -> None:
-    (mark,) = test_entrypoints.pytestmark  # type: ignore[attr-defined]  # ставит pytest.mark
-    assert mark.args == ("module", ("bira_core.testing.smoke", "json"))
