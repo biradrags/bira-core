@@ -18,7 +18,7 @@ uv add "bira-core[db,di,redis,tgbot,testing] @ git+https://github.com/biradrags/
 | `redis` | redis-py | `bira_core.redis.client`, `bira_core.protect.rate_limit` |
 | `di` | dishka | `bira_core.di.warmup`, `bira_core.di.notify` (+ `di.db`/`di.redis` с `[db,di]`/`[redis,di]`) |
 | `payments` | tenacity | `bira_core.payments.tbank` |
-| `testing` | dishka, pytest | `bira_core.testing.*` (платформа — своим extra: `[testing,tgbot]`, `[testing,max]`, `[testing,db]`) |
+| `testing` | dishka, pytest | `bira_core.testing.smoke`, `.wiring`; остальное — со своим extra: `.db` `[testing,db]`, `.providers_tg`/`.dialogs` `[testing,tgbot]`, `.redis` `[testing,tgbot,redis]`, `.providers_max` `[testing,max]` |
 
 Публичный контракт — модуль, который им владеет: `bira_core.db.dao`, `bira_core.notify.send`,
 `bira_core.tgbot.filters`. Инициализаторы пакетов пустые: `import bira_core.db` ничего не
@@ -87,6 +87,10 @@ maxo = { git = "https://github.com/biradrags/maxo", rev = "..." }
 | `bira_core.protect.middleware` | `flood_guard_middleware` |
 | `bira_core.payments.tbank` | `TBankClient`, token helpers |
 | `bira_core.testing.db` | `rollback_session`, `savepoint_session` |
+| `bira_core.testing.smoke` | `smoke_import`, `smoke_imports_test` — импорт точки входа в чистом интерпретаторе |
+| `bira_core.testing.wiring` | `assert_container_builds` — `get()` каждой APP/REQUEST фабрики dishka |
+| `bira_core.testing.dialogs` | `assert_callback_data_fits` — статическая проверка 64 байт callback_data |
+| `bira_core.testing.redis` | `redis_storage` — `RedisStorage` с `with_destiny=True`, без skip при недоступном Redis |
 
 ### protect: лимиты без UsageGate
 

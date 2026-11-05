@@ -85,7 +85,7 @@ jobs:
             tgbot)    M="bira_core.tgbot.filters bira_core.tgbot.commands bira_core.tgbot.errors bira_core.tgbot.keyboards bira_core.tgbot.last bira_core.tgbot.media_transfer bira_core.tgbot.forum bira_core.tgbot.dialogs" ;;
             max)      M="bira_core.maxbot.filters bira_core.maxbot.web bira_core.maxbot.dialogs" ;;
             payments) M="bira_core.payments.tbank" ;;
-            testing)  M="bira_core.testing.db" ;;
+            testing)  M="bira_core.testing.db bira_core.testing.smoke bira_core.testing.wiring" ;;
           esac
           for m in $M; do /tmp/smoke/bin/python -c "import $m" || exit 1; done
           echo "smoke ok: ${{ matrix.profile }}"
