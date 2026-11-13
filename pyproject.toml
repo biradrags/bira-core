@@ -26,7 +26,7 @@ bira-rules-check = "bira_core.rules_check:main"
 dev = [
     "pytest>=8",
     "pytest-asyncio>=0.24",
-    "ruff==0.16.0",
+    "ruff==0.17.4",
     "mypy>=1.11",
     "aiogram>=3.20",
     "dishka>=1.3",
